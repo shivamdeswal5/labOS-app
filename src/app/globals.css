@@ -1,75 +1,343 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --card: #ffffff;
-  --card-foreground: #0f172a;
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 
-  /* Diagnostic Navy */
-  --primary: #1e3a8a;
-  --primary-foreground: #f8fafc;
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  /* Slate Subdued */
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  /* Clinical Emerald Accent */
-  --accent: #0d9488;
-  --accent-foreground: #ffffff;
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  /* Abnormal / Critical Flag Crimson */
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #1e3a8a;
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  --radius: 0.5rem;
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-panic: var(--panic);
+  --color-panic-dark: var(--panic-dark);
+  --color-panic-wash: var(--panic-wash);
+  --color-panic-border: var(--panic-border);
+
+  --color-caution: var(--caution);
+  --color-caution-dark: var(--caution-dark);
+  --color-caution-wash: var(--caution-wash);
+  --color-caution-border: var(--caution-border);
+
+  --color-verified: var(--verified);
+  --color-verified-dark: var(--verified-dark);
+  --color-verified-wash: var(--verified-wash);
+  --color-verified-border: var(--verified-border);
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #090d16;
-    --foreground: #f8fafc;
+    /* Achromatic Core (Stitch 'Clinical Precision') */
+    --background: #ffffff;
+    --foreground: #09090b;
 
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
+    --card: #ffffff;
+    --card-foreground: #09090b;
 
-    --popover: #0f172a;
-    --popover-foreground: #f8fafc;
+    --popover: #ffffff;
+    --popover-foreground: #09090b;
 
-    --primary: #3b82f6;
-    --primary-foreground: #0f172a;
+    /* Primary Ink */
+    --primary: #09090b;
+    --primary-foreground: #ffffff;
 
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
+    /* Neutral & Muted Surfaces */
+    --secondary: #f4f4f5;
+    --secondary-foreground: #18181b;
 
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
 
-    --accent: #14b8a6;
-    --accent-foreground: #ffffff;
+    --accent: #f4f4f5;
+    --accent-foreground: #09090b;
+
+    /* Hairline Dividers */
+    --border: #e4e4e7;
+    --border-subtle: #e4e4e7;
+    --border-default: #d4d4d8;
+    --input: #d4d4d8;
+    --ring: #09090b;
+
+    /* Semantic Telemetry Palette */
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --panic: #ef4444;
+    --panic-dark: #dc2626;
+    --panic-wash: #fef2f2;
+    --panic-border: rgba(239, 68, 68, 0.35);
+
+    --caution: #f59e0b;
+    --caution-dark: #d97706;
+    --caution-wash: #fffbeb;
+    --caution-border: rgba(245, 158, 11, 0.35);
+
+    --verified: #10b981;
+    --verified-dark: #059669;
+    --verified-wash: #ecfdf5;
+    --verified-border: rgba(16, 185, 129, 0.3);
+
+    /* Radii (Surgical 6px/8px aesthetic) */
+    --radius-sm: 0.125rem; /* 2px */
+    --radius: 0.375rem;    /* 6px */
+    --radius-md: 0.375rem; /* 6px */
+    --radius-lg: 0.5rem;   /* 8px */
+    --radius-xl: 0.75rem;  /* 12px */
+
+    /* Formal Z-Index Scale */
+    --z-base: 1;
+    --z-table-sticky: 10;
+    --z-header: 30;
+    --z-sidebar: 40;
+    --z-drawer: 50;
+    --z-modal-backdrop: 60;
+    --z-modal: 61;
+    --z-toast: 70;
+    --z-command: 80;
+  }
+
+  .dark {
+    --background: #09090b;
+    --foreground: #fafafa;
+
+    --card: #121215;
+    --card-foreground: #fafafa;
+
+    --popover: #121215;
+    --popover-foreground: #fafafa;
+
+    --primary: #fafafa;
+    --primary-foreground: #09090b;
+
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
+
+    --muted: #18181b;
+    --muted-foreground: #a1a1aa;
+
+    --accent: #27272a;
+    --accent-foreground: #fafafa;
+
+    --border: #27272a;
+    --border-subtle: #27272a;
+    --border-default: #3f3f46;
+    --input: #3f3f46;
+    --ring: #d4d4d8;
 
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
 
-    --border: #1e293b;
-    --input: #1e293b;
-    --ring: #3b82f6;
+    --panic: #ef4444;
+    --panic-dark: #f87171;
+    --panic-wash: rgba(239, 68, 68, 0.15);
+    --panic-border: rgba(239, 68, 68, 0.4);
+
+    --caution: #f59e0b;
+    --caution-dark: #fbbf24;
+    --caution-wash: rgba(245, 158, 11, 0.15);
+    --caution-border: rgba(245, 158, 11, 0.4);
+
+    --verified: #10b981;
+    --verified-dark: #34d399;
+    --verified-wash: rgba(16, 185, 129, 0.15);
+    --verified-border: rgba(16, 185, 129, 0.4);
+    /* Formal Z-Index Scale */
+    --z-base: 1;
+    --z-table-sticky: 10;
+    --z-header: 30;
+    --z-sidebar: 40;
+    --z-drawer: 50;
+    --z-modal-backdrop: 60;
+    --z-modal: 61;
+    --z-toast: 70;
+    --z-command: 80;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/* Surgical Precision Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Clinical Telemetry & Tabular Numerical Formatting */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv05" 1;
+}
+
+.font-mono-code {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Mechanical Elevation & Hairline Dividers (Stitch Level Hierarchy) */
+.elevation-flat {
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+
+.elevation-overlay {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.elevation-modal {
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(9, 9, 11, 0.1);
+}
+
+/* Pulse Animation for Critical Panic Results */
+@keyframes panic-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.15);
+  }
+}
+
+.animate-panic {
+  animation: panic-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ==========================================================================
+   Global Clinical Print Architecture Subsystem
+   ========================================================================== */
+@media print {
+  /* Universally suppress all application shell chrome */
+  aside,
+  header,
+  nav,
+  .mobile-nav,
+  .live-activity-drawer,
+  .realtime-toast-stack,
+  #command-palette,
+  button:not(.print-keep),
+  [data-print-hidden="true"],
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Reset layout constraints for A4 clinical rendering */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-width: 100% !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  /* Avoid page breaks inside table rows and clinical sections */
+  tr,
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Suppress modal backdrops when printing from inside a modal */
+  .printable-modal-backdrop {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    position: static !important;
+    padding: 0 !important;
+  }
+
+  .printable-modal-content {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* When printing from a modal or isolated document portal, hide all other app containers */
+  body:has([data-printable-area="true"]) > div:not(:has([data-printable-area="true"])),
+  body:has([data-printable-area="true"]) main > *:not([data-printable-area="true"]):not(:has([data-printable-area="true"])) {
+    display: none !important;
+  }
+
+  /* Clinical Draft Watermark (NABL 112 / ISO 15189 compliance for unfinalized reports) */
+  .draft-watermark {
+    position: relative !important;
+  }
+
+  .draft-watermark::before {
+    content: "DRAFT — NOT FOR MEDICAL USE (UNSIGNED)" !important;
+    position: absolute !important;
+    top: 45% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-35deg) !important;
+    font-size: 26pt !important;
+    font-weight: 800 !important;
+    font-family: monospace, sans-serif !important;
+    color: rgba(220, 38, 38, 0.22) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    pointer-events: none !important;
+    white-space: nowrap !important;
+    z-index: 50 !important;
+    border: 3px dashed rgba(220, 38, 38, 0.28) !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+  }
+}
+
