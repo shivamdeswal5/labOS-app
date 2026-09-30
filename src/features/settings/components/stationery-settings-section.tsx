@@ -161,22 +161,58 @@ export function StationerySettingsSection({ profile, onChange }: StationerySetti
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Header Margin Spacer */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-foreground">Top Blank Space (Header Height)</span>
-                <span className="font-mono font-bold text-primary px-2 py-0.5 rounded bg-card border border-border">
-                  {currentSettings.headerMarginMm} mm
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdate({ headerMarginMm: Math.max(10, currentSettings.headerMarginMm - 1) })}
+                    className="w-6 h-6 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center transition-colors"
+                    title="Decrease 1mm"
+                  >
+                    -
+                  </button>
+                  <span className="font-mono font-bold text-primary px-2.5 py-0.5 rounded bg-card border border-border min-w-[54px] text-center">
+                    {currentSettings.headerMarginMm} mm
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdate({ headerMarginMm: Math.min(80, currentSettings.headerMarginMm + 1) })}
+                    className="w-6 h-6 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center transition-colors"
+                    title="Increase 1mm"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
-                min={30}
-                max={75}
+                min={10}
+                max={80}
                 step={1}
                 value={currentSettings.headerMarginMm}
                 onChange={(e) => handleUpdate({ headerMarginMm: Number(e.target.value) })}
                 className="w-full accent-primary cursor-pointer"
               />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-muted-foreground font-mono">Presets:</span>
+                {[15, 30, 48, 60].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => handleUpdate({ headerMarginMm: preset })}
+                    className={cn(
+                      'px-2 py-0.5 rounded text-[10px] font-mono border transition-colors',
+                      currentSettings.headerMarginMm === preset
+                        ? 'border-primary bg-primary/10 text-primary font-bold'
+                        : 'border-border bg-card text-muted-foreground hover:bg-muted',
+                    )}
+                  >
+                    {preset}mm
+                  </button>
+                ))}
+              </div>
               <p className="text-[11px] text-muted-foreground">
                 Measure with a ruler from the top edge of your paper to the bottom of the pre-printed logo.
               </p>
@@ -184,22 +220,58 @@ export function StationerySettingsSection({ profile, onChange }: StationerySetti
 
             {/* Footer Margin Spacer (if pre-printed both) */}
             {isPreprintedFooter && (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium text-foreground">Bottom Blank Space (Footer Height)</span>
-                  <span className="font-mono font-bold text-primary px-2 py-0.5 rounded bg-card border border-border">
-                    {currentSettings.footerMarginMm} mm
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdate({ footerMarginMm: Math.max(10, currentSettings.footerMarginMm - 1) })}
+                      className="w-6 h-6 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center transition-colors"
+                      title="Decrease 1mm"
+                    >
+                      -
+                    </button>
+                    <span className="font-mono font-bold text-primary px-2.5 py-0.5 rounded bg-card border border-border min-w-[54px] text-center">
+                      {currentSettings.footerMarginMm} mm
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdate({ footerMarginMm: Math.min(60, currentSettings.footerMarginMm + 1) })}
+                      className="w-6 h-6 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center transition-colors"
+                      title="Increase 1mm"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
                 <input
                   type="range"
-                  min={15}
-                  max={50}
+                  min={10}
+                  max={60}
                   step={1}
                   value={currentSettings.footerMarginMm}
                   onChange={(e) => handleUpdate({ footerMarginMm: Number(e.target.value) })}
                   className="w-full accent-primary cursor-pointer"
                 />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-muted-foreground font-mono">Presets:</span>
+                  {[15, 24, 35, 45].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleUpdate({ footerMarginMm: preset })}
+                      className={cn(
+                        'px-2 py-0.5 rounded text-[10px] font-mono border transition-colors',
+                        currentSettings.footerMarginMm === preset
+                          ? 'border-primary bg-primary/10 text-primary font-bold'
+                          : 'border-border bg-card text-muted-foreground hover:bg-muted',
+                      )}
+                    >
+                      {preset}mm
+                    </button>
+                  ))}
+                </div>
                 <p className="text-[11px] text-muted-foreground">
                   Measure from the bottom edge of your sheet to the top of the pre-printed footer text.
                 </p>

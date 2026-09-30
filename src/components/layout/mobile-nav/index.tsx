@@ -88,10 +88,23 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           <nav className="p-2 space-y-1 flex-1 overflow-y-auto">
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
+              const isAccessionWorklist =
+                item.href === '/accessions' &&
+                (pathname === '/accessions' ||
+                  (pathname.startsWith('/reports/') && pathname !== '/reports/new') ||
+                  pathname === '/reports');
+
+              const isNewRegistration =
+                item.href === '/reports/new' && pathname === '/reports/new';
+
               const isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname === item.href || pathname.startsWith(item.href + '/');
+                isAccessionWorklist ||
+                isNewRegistration ||
+                (item.href !== '/accessions' &&
+                  item.href !== '/reports/new' &&
+                  (item.href === '/'
+                    ? pathname === '/'
+                    : pathname === item.href || pathname.startsWith(item.href + '/')));
 
               return (
                 <Link

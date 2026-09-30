@@ -26,8 +26,13 @@ interface PreviewActionToolbarProps {
   onStationeryTypeChange?: (type: StationeryType) => void;
   headerMarginMm?: number;
   footerMarginMm?: number;
+  onHeaderMarginChange?: (val: number) => void;
+  onFooterMarginChange?: (val: number) => void;
   simulateBlankStationery?: boolean;
   onToggleSimulateStationery?: (val: boolean) => void;
+  onSaveAsDefault?: () => void;
+  isSavingDefault?: boolean;
+  isModified?: boolean;
 }
 
 export function PreviewActionToolbar({
@@ -37,8 +42,13 @@ export function PreviewActionToolbar({
   onStationeryTypeChange,
   headerMarginMm = 48,
   footerMarginMm = 24,
+  onHeaderMarginChange,
+  onFooterMarginChange,
   simulateBlankStationery = false,
   onToggleSimulateStationery,
+  onSaveAsDefault,
+  isSavingDefault = false,
+  isModified = false,
 }: PreviewActionToolbarProps) {
   const { data: labProfile } = useLabProfile();
   const labName = labProfile?.name || 'Diagnostic Laboratory';
@@ -51,6 +61,9 @@ export function PreviewActionToolbar({
   const patient = report.patient;
   const patientPhone = patient?.phone || '+91 98450 11234';
   const isFinalized = report.status === 'FINALIZED';
+  const cleanAge = patient?.age
+    ? String(patient.age).replace(/[^0-9]/g, '').trim() || String(patient.age).replace(/\s*(yrs|yr|y)\b/gi, '').trim()
+    : '';
 
   // Determine if any parameter is out of range / critical flag
   const hasAbnormalFindings = React.useMemo(() => {
@@ -129,7 +142,7 @@ export function PreviewActionToolbar({
 
           {/* Patient Quick Info */}
           <span className="text-xs text-muted-foreground hidden sm:inline">
-            {patient?.name} ({patient?.age ? `${patient.age}Y` : ''} / {patient?.sex?.[0] || 'U'})
+            {patient?.name} ({cleanAge ? `${cleanAge}Y` : ''} / {patient?.sex?.[0] || 'U'})
           </span>
         </div>
 
@@ -187,6 +200,11 @@ export function PreviewActionToolbar({
               footerMarginMm={footerMarginMm}
               simulateBlankStationery={simulateBlankStationery}
               onToggleSimulate={onToggleSimulateStationery || (() => {})}
+              onHeaderMarginChange={onHeaderMarginChange}
+              onFooterMarginChange={onFooterMarginChange}
+              onSaveAsDefault={onSaveAsDefault}
+              isSavingDefault={isSavingDefault}
+              isModified={isModified}
             />
           )}
 

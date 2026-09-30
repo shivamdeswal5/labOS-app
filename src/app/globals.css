@@ -282,7 +282,7 @@
 
   @page {
     size: A4 portrait;
-    margin: 10mm;
+    margin: 0;
   }
 
   /* Avoid page breaks inside table rows and clinical sections */

@@ -213,8 +213,9 @@ export function OrderSummaryBar({
               <Button
                 type="button"
                 size="default"
-                disabled={!isValid || isSubmitting}
+                disabled={isSubmitting}
                 onClick={onSubmit}
+                title={isValid ? 'Complete accession registration' : 'Click to validate required fields and register'}
                 className="w-full sm:w-auto h-9 px-6 font-semibold text-xs gap-2 shadow-sm"
               >
                 {isSubmitting ? (

@@ -60,7 +60,7 @@ export function PathologistSignaturesSection({
                         {doc.fullName}
                       </h3>
                       <p className="text-xs font-mono text-muted-foreground">
-                        {doc.qualification || 'MD Pathologist'}
+                        {doc.qualification || 'Authorized Signatory'}
                       </p>
                     </div>
                   </div>
@@ -73,7 +73,7 @@ export function PathologistSignaturesSection({
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Council Registration:</span>
                     <span className="font-mono font-semibold text-foreground">
-                      {doc.councilRegistration || 'KMC Reg #48291'}
+                      {doc.councilRegistration || 'Not Registered / Excluded'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
@@ -92,7 +92,7 @@ export function PathologistSignaturesSection({
                   <div className="h-28 bg-card rounded-md border border-dashed border-border p-3 flex flex-col items-center justify-center relative overflow-hidden">
                     {/* Visual Cursive Signature Stamp */}
                     <div className="font-serif italic text-2xl text-foreground font-bold opacity-90 select-none tracking-wide">
-                      {doc.fullName.replace('Dr. ', '')}
+                      {doc.fullName.replace(/^Dr\.\s*/i, '')}
                     </div>
                     <div className="w-32 h-0.5 bg-primary/40 my-1" />
                     <div className="text-[10px] font-mono text-muted-foreground text-center">

@@ -383,8 +383,8 @@ export default function ReportResultEntryPage({ params }: PageProps) {
           icon={<FlaskConical className="w-5 h-5" />}
           backHref="/accessions"
           breadcrumbs={[
-            { label: 'Accessions', href: '/accessions' },
-            { label: `Report #${reportId}` },
+            { label: 'Sample Worklist', href: '/accessions' },
+            { label: `Report #${report?.reportNumber || reportId}` },
             { label: 'Result Entry' },
           ]}
         />

@@ -60,6 +60,7 @@ export default function SettingsPage() {
       },
       {
         onSuccess: () => {
+          setDraftOverrides(null);
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 3000);
         },

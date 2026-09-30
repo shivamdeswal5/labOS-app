@@ -47,7 +47,7 @@ export const ROLE_METADATA: Record<AppRole, RoleMetadata> = {
     displayName: 'Lab Owner / Director',
     badgeLabel: 'Owner / Superuser',
     description: 'Full unrestricted governance across all clinical, financial, and administrative operations.',
-    simulatedName: 'Dr. Deswal',
+    simulatedName: 'Deswal',
     simulatedTitle: 'Lab Director & Superuser',
     badgeColorClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
   },

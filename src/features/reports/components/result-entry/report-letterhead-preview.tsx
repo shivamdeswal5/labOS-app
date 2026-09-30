@@ -40,6 +40,12 @@ export function ReportLetterheadPreview({
     (s) => s.role === 'TECHNICIAN' || s.role === 'SR_TECHNICIAN',
   );
 
+  // Normalized patient age (strips accidental duplicate 'YRS' or letters)
+  const rawAge = patient?.age;
+  const normalizedAge = rawAge
+    ? String(rawAge).replace(/[^0-9]/g, '').trim() || String(rawAge).replace(/\s*(yrs|yr|y)\b/gi, '').trim()
+    : null;
+
   // Format creation or report date
   const reportDate = React.useMemo(() => {
     return formatDate(report.createdAt || new Date().toISOString());
@@ -118,7 +124,7 @@ export function ReportLetterheadPreview({
                 Age / Gender:
               </span>
               <span className="font-medium text-zinc-800">
-                {patient?.age ? `${patient.age} Y` : 'N/A'} / {patient?.sex || 'N/A'}
+                {normalizedAge ? `${normalizedAge} Y` : 'N/A'} / {patient?.sex || 'N/A'}
               </span>
             </div>
 
@@ -241,13 +247,27 @@ export function ReportLetterheadPreview({
               ) : (
                 <div className="text-[10px] font-mono text-zinc-400 mb-1">Draft — Pending Sign-off</div>
               )}
-              <div className="font-serif italic font-semibold text-zinc-900 text-sm">
-                {primarySignatory?.fullName || 'Dr. Deswal'}
+              {primarySignatory?.signatureUrl ? (
+                <div className="h-8 flex items-center justify-end">
+                  <img
+                    src={primarySignatory.signatureUrl}
+                    alt="Doctor Signature"
+                    className="max-h-7 max-w-[120px] object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="h-6" />
+              )}
+              <div className="font-bold text-zinc-900 text-xs">
+                {primarySignatory?.fullName || 'Authorized Signatory'}
               </div>
-              <div className="font-bold text-zinc-900 text-xs">{primarySignatory?.fullName || 'Dr. Deswal'}</div>
-              <div className="font-mono text-[10px] text-zinc-600">{primarySignatory?.qualification || 'MBBS, MD (Pathology)'}</div>
+              {primarySignatory?.qualification ? (
+                <div className="font-mono text-[10px] text-zinc-600">{primarySignatory.qualification}</div>
+              ) : null}
               <div className="font-mono text-[10px] text-zinc-500">
-                {primarySignatory?.councilRegistration ? `Regn: ${primarySignatory.councilRegistration}` : 'Authorized Signatory'}
+                {primarySignatory?.councilRegistration
+                  ? `Regn: ${primarySignatory.councilRegistration}`
+                  : (primarySignatory?.signOffScope || (primarySignatory?.fullName ? 'Authorized Signatory' : ''))}
               </div>
             </div>
           </div>

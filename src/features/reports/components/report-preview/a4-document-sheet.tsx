@@ -7,6 +7,7 @@ import { useLabProfile, useStaffMembers } from '@/features/settings/api/use-sett
 import { useOutsourcedTests } from '@/features/referrals/api/use-outsourced';
 import { ReportQrCode } from '@/components/ui/qr-code';
 import { ReportBarcode } from '@/components/ui/barcode';
+import { cn } from '@/lib/utils';
 import { evaluateNormalRange } from '../../utils/range-checker';
 import type { StationeryType } from '@/features/settings/types';
 import type { DetailedReport } from '../../types';
@@ -55,6 +56,12 @@ export function A4DocumentSheet({
   const officialEmail = labProfile?.officialEmail?.trim() || '';
   const initialLetter = labName.trim().charAt(0).toUpperCase() || 'D';
 
+  // Normalized patient age (strips accidental duplicate 'YRS' or letters)
+  const rawAge = patient?.age;
+  const normalizedAge = rawAge
+    ? String(rawAge).replace(/[^0-9]/g, '').trim() || String(rawAge).replace(/\s*(yrs|yr|y)\b/gi, '').trim()
+    : null;
+
   // Primary doctor / Signatory
   const primarySignatory =
     staffMembers.find(
@@ -95,30 +102,55 @@ export function A4DocumentSheet({
   return (
     <div
       id="printSheet"
-      className="w-full max-w-[820px] bg-white text-zinc-900 shadow-xl rounded-none p-6 sm:p-10 flex flex-col gap-5 border border-zinc-200 select-none print:shadow-none print:border-none print:p-0 print:m-0"
+      className={cn(
+        'w-full max-w-[820px] bg-white text-zinc-900 shadow-xl rounded-none p-6 sm:p-10 flex flex-col gap-5 border border-zinc-200 select-none print:shadow-none print:border-none print:px-10 print:m-0 print:max-w-none',
+        isPreprintedHeader ? 'print:pt-0' : 'print:pt-8',
+        isPreprintedFooter ? 'print:pb-0' : 'print:pb-8',
+      )}
     >
       {/* 1. Header / Letterhead or Pre-Printed Stationery Spacer */}
       {isPreprintedHeader ? (
         <>
-          {/* Physical Print Spacer: Keeps top margin blank for pre-printed letterhead pad */}
+          {/* Physical Print Spacer: Keeps EXACT millimeter top margin blank for pre-printed letterhead pad */}
           <div
-            className="hidden print:block w-full"
-            style={{ height: `${effectiveHeaderMargin}mm` }}
+            className="hidden print:block w-full shrink-0"
+            style={{
+              height: `${effectiveHeaderMargin}mm`,
+              marginBottom: '-1.25rem', // Neutralizes parent gap-5 (1.25rem / 20px) in print so offset is 100% exact to physical mm
+            }}
             aria-hidden="true"
           />
 
           {/* Screen Presentation */}
           {simulateBlankStationery ? (
             <div
-              className="w-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50/70 rounded-lg flex flex-col items-center justify-center text-zinc-500 p-4 gap-1 select-none print:hidden"
-              style={{ minHeight: `${effectiveHeaderMargin}mm` }}
+              className="w-full border-2 border-dashed border-teal-500/40 bg-teal-50/30 dark:bg-teal-950/20 rounded-lg flex flex-col items-center justify-center text-teal-800 dark:text-teal-200 px-2 overflow-hidden select-none print:hidden transition-all duration-150"
+              style={{ height: `${effectiveHeaderMargin}mm` }}
             >
-              <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                <span>[ Pre-Printed Letterhead Space — {effectiveHeaderMargin}mm ]</span>
-              </div>
-              <p className="text-[11px] text-zinc-500 font-sans">
-                Paper pad logo area kept blank. Clinical results start immediately below.
-              </p>
+              {effectiveHeaderMargin < 18 ? (
+                /* Ultra-compact mode for small margins (10mm - 17mm) */
+                <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse shrink-0" />
+                  <span>↕ Pre-Printed Letterhead Zone ({effectiveHeaderMargin}mm)</span>
+                </div>
+              ) : effectiveHeaderMargin < 28 ? (
+                /* Medium mode (18mm - 27mm) */
+                <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider bg-white dark:bg-zinc-900 px-2.5 py-0.5 rounded-full border border-teal-300 dark:border-teal-700 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse shrink-0" />
+                  <span>↕ Pre-Printed Letterhead Zone ({effectiveHeaderMargin}mm)</span>
+                </div>
+              ) : (
+                /* Full mode (>= 28mm) */
+                <div className="flex flex-col items-center justify-center gap-1 text-center py-1">
+                  <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider bg-white dark:bg-zinc-900 px-3 py-1 rounded-full border border-teal-300 dark:border-teal-700 shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse shrink-0" />
+                    <span>↕ Pre-Printed Letterhead Zone ({effectiveHeaderMargin}mm)</span>
+                  </div>
+                  <p className="text-[11px] text-teal-700 dark:text-teal-300 font-sans max-w-md">
+                    Paper pad logo area kept blank. Patient demographics and clinical test results begin immediately below.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="relative group print:hidden">
@@ -255,7 +287,7 @@ export function A4DocumentSheet({
               Age / Sex
             </span>
             <span className="font-mono font-medium text-zinc-900">
-              {patient?.age ? `${patient.age} Yrs` : 'N/A'} / {patient?.sex || 'N/A'}
+              {normalizedAge ? `${normalizedAge} Yrs` : 'N/A'} / {patient?.sex || 'N/A'}
             </span>
           </div>
 
@@ -479,9 +511,17 @@ export function A4DocumentSheet({
           {/* Technician Signature (Only if configured) */}
           {technician && (
             <div className="flex flex-col items-center">
-              <div className="h-8 flex items-center justify-center font-serif italic text-zinc-600 text-sm">
-                {technician.fullName}
-              </div>
+              {technician.signatureUrl ? (
+                <div className="h-8 flex items-center justify-center">
+                  <img
+                    src={technician.signatureUrl}
+                    alt="Technician Signature"
+                    className="max-h-7 max-w-[120px] object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="h-8" />
+              )}
               <div className="h-px w-28 bg-zinc-300 mb-1" />
               <span className="font-bold text-zinc-900 text-xs">{technician.fullName}</span>
               <span className="font-mono text-[10px] text-zinc-500">
@@ -490,19 +530,35 @@ export function A4DocumentSheet({
             </div>
           )}
 
-          {/* Primary Doctor / Signatory */}
-          <div className="flex flex-col items-center">
-            <div className="h-8 flex items-center justify-center font-serif italic font-semibold text-zinc-900 text-base">
-              {primarySignatory?.fullName || 'Dr. Deswal'}
-            </div>
+          {/* Primary Signatory */}
+          <div className="flex flex-col items-center min-w-[140px]">
+            {primarySignatory?.signatureUrl ? (
+              <div className="h-8 flex items-center justify-center">
+                <img
+                  src={primarySignatory.signatureUrl}
+                  alt="Signatory Signature"
+                  className="max-h-7 max-w-[140px] object-contain"
+                />
+              </div>
+            ) : (
+              <div className="h-8" />
+            )}
             <div className="h-px w-36 bg-zinc-300 mb-1" />
-            <span className="font-bold text-zinc-900 text-xs">{primarySignatory?.fullName || 'Dr. Deswal'}</span>
-            <span className="text-zinc-600 text-[11px]">
-              {primarySignatory?.qualification || 'MBBS, MD (Pathology)'}
+            <span className="font-bold text-zinc-900 text-xs">
+              {primarySignatory?.fullName || 'Authorized Signatory'}
             </span>
-            {primarySignatory?.councilRegistration && (
+            {primarySignatory?.qualification ? (
+              <span className="text-zinc-600 text-[11px]">
+                {primarySignatory.qualification}
+              </span>
+            ) : null}
+            {primarySignatory?.councilRegistration ? (
               <span className="font-mono text-[10px] text-zinc-500">
                 Regn. No: {primarySignatory.councilRegistration}
+              </span>
+            ) : (
+              <span className="font-mono text-[10px] text-zinc-500">
+                {primarySignatory?.signOffScope || (primarySignatory?.fullName ? 'Authorized Signatory' : '')}
               </span>
             )}
           </div>
@@ -514,16 +570,42 @@ export function A4DocumentSheet({
         <>
           {/* Print Spacer to prevent doctor signatures colliding with pre-printed bottom letterhead */}
           <div
-            className="hidden print:block w-full"
-            style={{ height: `${effectiveFooterMargin}mm` }}
+            className="hidden print:block w-full shrink-0"
+            style={{
+              height: `${effectiveFooterMargin}mm`,
+              marginTop: '-1.25rem', // Neutralizes parent gap-5 in print
+            }}
             aria-hidden="true"
           />
           {simulateBlankStationery && (
             <div
-              className="w-full border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50/50 rounded flex items-center justify-center text-zinc-500 font-mono text-[10px] py-1.5 select-none print:hidden"
-              style={{ minHeight: `${effectiveFooterMargin}mm` }}
+              className="w-full border-2 border-dashed border-indigo-500/40 bg-indigo-50/30 dark:bg-indigo-950/20 rounded-lg flex flex-col items-center justify-center text-indigo-700 dark:text-indigo-300 px-2 overflow-hidden select-none print:hidden transition-all duration-150"
+              style={{ height: `${effectiveFooterMargin}mm` }}
             >
-              <span>[ Pre-Printed Footer Space — {effectiveFooterMargin}mm ]</span>
+              {effectiveFooterMargin < 18 ? (
+                /* Ultra-compact mode for small margins (10mm - 17mm) */
+                <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
+                  <span>↕ Pre-Printed Footer Space ({effectiveFooterMargin}mm)</span>
+                </div>
+              ) : effectiveFooterMargin < 28 ? (
+                /* Medium mode (18mm - 27mm) */
+                <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider bg-white dark:bg-zinc-900 px-2.5 py-0.5 rounded-full border border-indigo-300 dark:border-indigo-700 shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
+                  <span>↕ Pre-Printed Footer Space ({effectiveFooterMargin}mm)</span>
+                </div>
+              ) : (
+                /* Full mode (>= 28mm) */
+                <div className="flex flex-col items-center justify-center gap-1 text-center py-1">
+                  <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider bg-white dark:bg-zinc-900 px-3 py-1 rounded-full border border-indigo-300 dark:border-indigo-700 shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shrink-0" />
+                    <span>↕ Pre-Printed Footer Space ({effectiveFooterMargin}mm)</span>
+                  </div>
+                  <p className="text-[11px] text-indigo-700 dark:text-indigo-300 font-sans max-w-md">
+                    Paper pad footer and branch address space kept blank.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -531,7 +613,11 @@ export function A4DocumentSheet({
         <div className="pt-2 border-t border-zinc-200 flex flex-wrap items-center justify-between text-zinc-500 font-mono text-[10px]">
           <span>Page 1 of 1 | End of Analytical Report</span>
           <span className="uppercase font-semibold">Computer Generated Clinical Diagnostic Examination Report</span>
-          <span>Valid without physical signature</span>
+          <span>
+            {report.status === 'FINALIZED'
+              ? 'Authenticated Electronically · Valid without physical signature'
+              : 'Preliminary / Draft Examination Copy'}
+          </span>
         </div>
       )}
     </div>

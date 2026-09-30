@@ -21,6 +21,11 @@ interface PaperStationerySelectorProps {
   footerMarginMm: number;
   simulateBlankStationery: boolean;
   onToggleSimulate: (val: boolean) => void;
+  onHeaderMarginChange?: (val: number) => void;
+  onFooterMarginChange?: (val: number) => void;
+  onSaveAsDefault?: () => void;
+  isSavingDefault?: boolean;
+  isModified?: boolean;
 }
 
 export function PaperStationerySelector({
@@ -30,6 +35,11 @@ export function PaperStationerySelector({
   footerMarginMm,
   simulateBlankStationery,
   onToggleSimulate,
+  onHeaderMarginChange,
+  onFooterMarginChange,
+  onSaveAsDefault,
+  isSavingDefault = false,
+  isModified = false,
 }: PaperStationerySelectorProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -159,6 +169,93 @@ export function PaperStationerySelector({
               );
             })}
           </div>
+
+          {/* Quick Millimeter Steppers (if pre-printed selected) */}
+          {stationeryType !== 'PLAIN' && onHeaderMarginChange && (
+            <div className="pt-2 border-t border-border px-2 py-1.5 space-y-2 bg-muted/30 rounded-lg">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-medium text-foreground">Top Blank Space:</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onHeaderMarginChange(Math.max(10, headerMarginMm - 1))}
+                    className="w-5 h-5 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center"
+                    title="Decrease 1mm"
+                  >
+                    -
+                  </button>
+                  <span className="font-mono font-bold text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded bg-card border border-border min-w-[48px] text-center text-[11px]">
+                    {headerMarginMm}mm
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onHeaderMarginChange(Math.min(80, headerMarginMm + 1))}
+                    className="w-5 h-5 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center"
+                    title="Increase 1mm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {stationeryType === 'PREPRINTED_HEADER_AND_FOOTER' && onFooterMarginChange && (
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-foreground">Bottom Blank Space:</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onFooterMarginChange(Math.max(10, footerMarginMm - 5))}
+                      className="h-5 px-1 rounded border border-border bg-card hover:bg-muted text-[10px] font-mono text-muted-foreground hover:text-foreground"
+                      title="Decrease 5mm"
+                    >
+                      -5
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onFooterMarginChange(Math.max(10, footerMarginMm - 1))}
+                      className="w-5 h-5 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center"
+                      title="Decrease 1mm"
+                    >
+                      -
+                    </button>
+                    <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded bg-card border border-border min-w-[48px] text-center text-[11px]">
+                      {footerMarginMm}mm
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onFooterMarginChange(Math.min(60, footerMarginMm + 1))}
+                      className="w-5 h-5 rounded border border-border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center"
+                      title="Increase 1mm"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onFooterMarginChange(Math.min(60, footerMarginMm + 5))}
+                      className="h-5 px-1 rounded border border-border bg-card hover:bg-muted text-[10px] font-mono text-muted-foreground hover:text-foreground"
+                      title="Increase 5mm"
+                    >
+                      +5
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isModified && onSaveAsDefault && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSaveAsDefault();
+                    setIsOpen(false);
+                  }}
+                  disabled={isSavingDefault}
+                  className="w-full py-1 px-2 rounded bg-teal-600 hover:bg-teal-700 text-white font-medium text-[11px] text-center transition-colors"
+                >
+                  {isSavingDefault ? 'Saving...' : `Save ${headerMarginMm}mm as Lab Default`}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Quick Screen Preview Toggle */}
           <div className="pt-2 border-t border-border px-2 py-1.5 flex items-center justify-between">

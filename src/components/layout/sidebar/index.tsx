@@ -14,7 +14,6 @@ import {
   FlaskConical,
   ShieldCheck,
   ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRBAC } from '@/features/auth/hooks/use-rbac';
@@ -87,47 +86,54 @@ export function Sidebar({ collapsed, onToggleCollapse, className }: SidebarProps
       )}
     >
       <div className="flex flex-col flex-1 min-h-0">
-        {/* Brand & Prominent Collapse/Expand Toggle Header */}
+        {/* Brand & Collapse/Expand Toggle Header */}
         <div
           className={cn(
             'h-14 flex items-center border-b border-border bg-muted/40 transition-all',
-            collapsed ? 'px-2 justify-between' : 'px-3.5 justify-between',
+            collapsed ? 'px-0 justify-center' : 'px-3.5 justify-between',
           )}
         >
-          <Link
-            href="/"
-            className="flex items-center gap-2 overflow-hidden group"
-            title="LabOS Home"
-          >
-            <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 tracking-wider group-hover:opacity-90 transition-opacity">
-              LO
-            </div>
-            {!collapsed && (
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm tracking-tight text-foreground">
-                  LabOS
-                </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-                  {process.env.NEXT_PUBLIC_APP_VERSION || 'v1.0'}
-                </span>
+          {collapsed ? (
+            <Link
+              href="/"
+              className="flex items-center justify-center w-full group"
+              title="LabOS Home"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs tracking-wider shadow-xs group-hover:opacity-90 transition-opacity">
+                LO
               </div>
-            )}
-          </Link>
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/"
+                className="flex items-center gap-2 overflow-hidden group"
+                title="LabOS Home"
+              >
+                <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 tracking-wider group-hover:opacity-90 transition-opacity">
+                  LO
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-sm tracking-tight text-foreground">
+                    LabOS
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                    {process.env.NEXT_PUBLIC_APP_VERSION || 'v1.0'}
+                  </span>
+                </div>
+              </Link>
 
-          {/* Always-visible top toggle button */}
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
-            title={collapsed ? 'Expand sidebar (Ctrl+B or [)' : 'Collapse sidebar (Ctrl+B or [)'}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4 text-primary" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </button>
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
+                title="Collapse sidebar (Ctrl+B or [)"
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Facility Station Metadata Box */}
@@ -143,10 +149,23 @@ export function Sidebar({ collapsed, onToggleCollapse, className }: SidebarProps
           <nav className="space-y-0.5">
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
+              const isAccessionWorklist =
+                item.href === '/accessions' &&
+                (pathname === '/accessions' ||
+                  (pathname.startsWith('/reports/') && pathname !== '/reports/new') ||
+                  pathname === '/reports');
+
+              const isNewRegistration =
+                item.href === '/reports/new' && pathname === '/reports/new';
+
               const isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname === item.href || pathname.startsWith(item.href + '/');
+                isAccessionWorklist ||
+                isNewRegistration ||
+                (item.href !== '/accessions' &&
+                  item.href !== '/reports/new' &&
+                  (item.href === '/'
+                    ? pathname === '/'
+                    : pathname === item.href || pathname.startsWith(item.href + '/')));
 
               return (
                 <Link

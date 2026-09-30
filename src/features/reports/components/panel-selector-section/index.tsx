@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Search, CheckSquare, Square, Clock, TestTube } from 'lucide-react';
+import { Search, CheckSquare, Square, Clock, TestTube, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { usePanels } from '../../api/use-panels';
 import { formatCurrency } from '@/lib/formatters';
 import { DEMO_TEST_PANELS } from '@/lib/demo-data';
@@ -9,11 +10,13 @@ import { DEMO_TEST_PANELS } from '@/lib/demo-data';
 interface PanelSelectorSectionProps {
   selectedPanelIds: string[];
   onTogglePanel: (panelId: string) => void;
+  error?: string;
 }
 
 export function PanelSelectorSection({
   selectedPanelIds,
   onTogglePanel,
+  error,
 }: PanelSelectorSectionProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState<string>('All');
@@ -41,7 +44,13 @@ export function PanelSelectorSection({
   }, [panels, selectedCategory, searchQuery]);
 
   return (
-    <section className="bg-card rounded-xl p-4 sm:p-6 border border-border elevation-flat space-y-5">
+    <section
+      id="panel-selector-section"
+      className={cn(
+        'bg-card rounded-xl p-4 sm:p-6 border border-border elevation-flat space-y-5 transition-all',
+        error && 'border-destructive ring-1 ring-destructive',
+      )}
+    >
       {/* Section Header with Search & Filter */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
@@ -57,6 +66,13 @@ export function PanelSelectorSection({
             </p>
           </div>
         </div>
+
+        {error && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-900 rounded-md text-xs font-semibold text-destructive animate-in fade-in-0">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Search Field */}
         <div className="relative w-full lg:w-80">

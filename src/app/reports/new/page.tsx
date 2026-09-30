@@ -58,6 +58,11 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
   const [paymentMode, setPaymentMode] = React.useState<PaymentMode>('PAID');
   const [paymentMethod, setPaymentMethod] = React.useState<ActivePaymentMethod>('UPI');
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = React.useState<{
+    name?: string;
+    age?: string;
+    panels?: string;
+  }>({});
   const [createdReport, setCreatedReport] = React.useState<CreatedReportDetails | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = React.useState<boolean>(false);
 
@@ -65,6 +70,8 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
   const handleUpdateForm = (updates: Partial<PatientFormState>) => {
     setFormState((prev) => ({ ...prev, ...updates }));
     setErrorMessage(null);
+    if (updates.name) setValidationErrors((prev) => ({ ...prev, name: undefined }));
+    if (updates.age) setValidationErrors((prev) => ({ ...prev, age: undefined }));
   };
 
   // Toggle panels
@@ -72,6 +79,7 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     setSelectedPanelIds((prev) =>
       prev.includes(panelId) ? prev.filter((id) => id !== panelId) : [...prev, panelId],
     );
+    setValidationErrors((prev) => ({ ...prev, panels: undefined }));
   };
 
   // Calculate total price
@@ -90,8 +98,34 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
 
   // Submit handler — IDs and Invoices are assigned atomically by backend in PostgreSQL
   const handleSubmit = async () => {
-    if (!isValid || createReportMutation.isPending || createdReport) return;
+    if (createReportMutation.isPending || createdReport) return;
     setErrorMessage(null);
+
+    // Explicit field validation
+    const errors: { name?: string; age?: string; panels?: string } = {};
+    if (!formState.name || formState.name.trim().length < 2) {
+      errors.name = 'Patient name is required (minimum 2 characters)';
+    }
+    if (!formState.age || formState.age.trim().length === 0) {
+      errors.age = 'Patient age is required';
+    }
+    if (selectedPanelIds.length === 0) {
+      errors.panels = 'Please select at least one test panel to register';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      if (errors.name) {
+        document.getElementById('patient-name')?.focus();
+      } else if (errors.age) {
+        document.getElementById('patient-age')?.focus();
+      } else if (errors.panels) {
+        document.getElementById('panel-selector-section')?.scrollIntoView({ behavior: 'smooth' });
+      }
+      return;
+    }
+
+    setValidationErrors({});
 
     try {
       const formattedAge = `${formState.age} ${formState.ageUnit}`;
@@ -244,12 +278,14 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
           <PatientIntakeSection
             formState={formState}
             onChange={handleUpdateForm}
+            errors={validationErrors}
           />
 
           {/* Section 02: Investigation Panels */}
           <PanelSelectorSection
             selectedPanelIds={selectedPanelIds}
             onTogglePanel={handleTogglePanel}
+            error={validationErrors.panels}
           />
 
           {/* Sticky Summary & Submit Bar */}

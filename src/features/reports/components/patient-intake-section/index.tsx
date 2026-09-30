@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { usePatientSearch } from '@/features/patients/api/use-patient-search';
 import { useDoctors } from '@/features/referrals/api/use-doctors';
 import type { Patient, SexEnum } from '../../types';
@@ -33,11 +34,18 @@ export interface PatientFormState {
 interface PatientIntakeSectionProps {
   formState: PatientFormState;
   onChange: (updates: Partial<PatientFormState>) => void;
+  errors?: {
+    name?: string;
+    age?: string;
+    phone?: string;
+    panels?: string;
+  };
 }
 
 export function PatientIntakeSection({
   formState,
   onChange,
+  errors,
 }: PatientIntakeSectionProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [showSearchResults, setShowSearchResults] = React.useState(false);
@@ -195,20 +203,27 @@ export function PatientIntakeSection({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
         {/* Patient Name */}
         <div className="lg:col-span-4 space-y-1.5">
-          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <label htmlFor="patient-name" className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             Patient Full Name <span className="text-destructive">*</span>
           </label>
           <div className="relative">
             <Input
+              id="patient-name"
               type="text"
               required
               value={formState.name}
               onChange={(e) => onChange({ name: e.target.value })}
               placeholder="e.g. Priya Deshmukh"
-              className="h-9 text-xs"
+              className={cn('h-9 text-xs', errors?.name && 'border-destructive ring-1 ring-destructive focus-visible:ring-destructive')}
+              aria-invalid={Boolean(errors?.name)}
             />
           </div>
-          {formState.existingPatientId && (
+          {errors?.name && (
+            <p className="text-[11px] text-destructive font-medium mt-1 animate-in fade-in-0 duration-150">
+              {errors.name}
+            </p>
+          )}
+          {formState.existingPatientId && !errors?.name && (
             <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <BadgeCheck className="w-3 h-3" />
               <span>Existing MRN: {formState.patientNumber}</span>
@@ -218,11 +233,12 @@ export function PatientIntakeSection({
 
         {/* Age & Unit */}
         <div className="lg:col-span-2 space-y-1.5">
-          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <label htmlFor="patient-age" className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             Age <span className="text-destructive">*</span>
           </label>
           <div className="flex items-center gap-1.5">
             <Input
+              id="patient-age"
               type="number"
               min="0"
               max="130"
@@ -230,7 +246,8 @@ export function PatientIntakeSection({
               value={formState.age}
               onChange={(e) => onChange({ age: e.target.value })}
               placeholder="38"
-              className="h-9 text-xs"
+              className={cn('h-9 text-xs', errors?.age && 'border-destructive ring-1 ring-destructive focus-visible:ring-destructive')}
+              aria-invalid={Boolean(errors?.age)}
             />
             <select
               value={formState.ageUnit}
@@ -242,6 +259,11 @@ export function PatientIntakeSection({
               <option value="DAYS">DAYS</option>
             </select>
           </div>
+          {errors?.age && (
+            <p className="text-[11px] text-destructive font-medium mt-1 animate-in fade-in-0 duration-150">
+              {errors.age}
+            </p>
+          )}
         </div>
 
         {/* Biological Sex */}
