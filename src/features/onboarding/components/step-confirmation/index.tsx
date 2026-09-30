@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
   Building2,
@@ -18,7 +17,6 @@ interface StepConfirmationProps {
 }
 
 export function StepConfirmation({ state }: StepConfirmationProps) {
-  const router = useRouter();
   const { labProfile, pathologist, catalog } = state;
 
   React.useEffect(() => {

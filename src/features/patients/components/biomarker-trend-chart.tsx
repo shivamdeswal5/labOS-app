@@ -168,11 +168,6 @@ function computeTrajectory(points: BiomarkerDataPoint[]): {
   const deltaPct = ((latest - first) / Math.abs(first)) * 100;
   const absStr = `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}%`;
 
-  // For most biomarkers, an increase is "recovery" (Hb, PCV, MCV...)
-  // For some (ESR, Creatinine, Bilirubin, HbA1c, FBS), increase = worsening
-  const worseningParams = new Set(['ESR', 'Erythrocyte Sedimentation Rate (ESR)', 'HbA1c', 'Serum Creatinine', 'Serum Bilirubin (Total)', 'Fasting Blood Sugar (FBS)', 'SGPT (ALT)', 'SGOT (AST)']);
-  const paramImprovesWhenHigher = !worseningParams.has(points[0].reportNumber); // fallback
-  const isAnemia = Math.abs(deltaPct) >= 1;
   const isIncreasing = latest > first;
 
   if (Math.abs(deltaPct) < 1) {
@@ -199,11 +194,6 @@ export function BiomarkerTrendChart({ reports }: BiomarkerTrendChartProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // Reset selection when patient changes
-  React.useEffect(() => {
-    setSelectedName(null);
-  }, [reports]);
-
   // Close dropdown on outside click
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -215,7 +205,7 @@ export function BiomarkerTrendChart({ reports }: BiomarkerTrendChartProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const activeName = selectedName ?? defaultName;
+  const activeName = (selectedName && seriesNames.includes(selectedName)) ? selectedName : defaultName;
   const series = activeName ? seriesMap.get(activeName) ?? null : null;
 
   // ── Empty / insufficient data states ────────────────────────────────────────

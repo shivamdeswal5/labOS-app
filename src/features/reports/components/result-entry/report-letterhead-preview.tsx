@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { ExternalLink, ShieldCheck, Eye } from 'lucide-react';
 import { formatDate } from '@/lib/formatters';
-import { useLabProfile } from '@/features/settings/api/use-settings';
+import { useLabProfile, useStaffMembers } from '@/features/settings/api/use-settings';
 import { evaluateNormalRange } from '../../utils/range-checker';
 import type { DetailedReport } from '../../types';
 
@@ -20,6 +20,7 @@ export function ReportLetterheadPreview({
   remarks,
 }: ReportLetterheadPreviewProps) {
   const { data: labProfile } = useLabProfile();
+  const { data: staffMembers = [] } = useStaffMembers();
   const patient = report.patient;
   const patientSex = patient?.sex;
   const isFinalized = report.status === 'FINALIZED';
@@ -28,7 +29,16 @@ export function ReportLetterheadPreview({
   const labName = labProfile?.name || 'Deswal Diagnostic Laboratory';
   const labAddress = labProfile?.address || 'Barara, Haryana';
   const labPhones = labProfile?.phoneNumbers?.join(' / ') || '';
-  const nablId = labProfile?.nablId || 'NABL Accredited';
+  const nablId = labProfile?.nablId?.trim() || '';
+
+  // Primary doctor / Signatory
+  const primarySignatory =
+    staffMembers.find(
+      (s) => s.role === 'OWNER' || s.role === 'PATHOLOGIST' || s.role === 'DIRECTOR',
+    ) || staffMembers[0];
+  const technician = staffMembers.find(
+    (s) => s.role === 'TECHNICIAN' || s.role === 'SR_TECHNICIAN',
+  );
 
   // Format creation or report date
   const reportDate = React.useMemo(() => {
@@ -83,7 +93,7 @@ export function ReportLetterheadPreview({
               {labProfile?.tagline || 'Clinical Pathology, Biochemistry, Hematology & Molecular Diagnostics'}
             </p>
             <p className="font-mono text-[10px] text-zinc-500 mt-0.5">
-              {labAddress} {labPhones ? `| Tel: ${labPhones}` : ''} | NABL: {nablId}
+              {labAddress} {labPhones ? `| Tel: ${labPhones}` : ''} {nablId ? `| NABL: ${nablId}` : ''}
             </p>
           </div>
 
@@ -199,21 +209,28 @@ export function ReportLetterheadPreview({
           ))}
 
           {/* Clinical Remarks Block */}
-          <div className="mt-4 p-2.5 bg-zinc-50 rounded border border-zinc-200">
-            <div className="font-mono text-[10px] font-bold text-zinc-800 uppercase">Doctor Remarks:</div>
-            <div className="text-[11px] text-zinc-700 mt-0.5 italic">
-              {remarks.trim() ? remarks : 'Nil significant abnormality detected.'}
+          {remarks && remarks.trim() ? (
+            <div className="mt-4 p-2.5 bg-zinc-50 rounded border border-zinc-200">
+              <div className="font-mono text-[10px] font-bold text-zinc-800 uppercase">Doctor Remarks:</div>
+              <div className="text-[11px] text-zinc-700 mt-0.5 italic">
+                {remarks.trim()}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
         {/* Clean Signature Footer */}
         <div className="pt-4 mt-6 border-t border-zinc-200">
           <div className="flex items-end justify-between">
-            <div>
-              <div className="text-[11px] font-medium text-zinc-700">Checked by:</div>
-              <div className="font-mono text-[10px] text-zinc-500">Lab Technician (DMLT)</div>
-            </div>
+            {technician ? (
+              <div>
+                <div className="text-[11px] font-medium text-zinc-700">Checked by:</div>
+                <div className="font-bold text-zinc-900 text-xs">{technician.fullName}</div>
+                <div className="font-mono text-[10px] text-zinc-500">{technician.qualification || 'Lab Technician (DMLT)'}</div>
+              </div>
+            ) : (
+              <div />
+            )}
 
             <div className="text-right">
               {isFinalized ? (
@@ -225,11 +242,13 @@ export function ReportLetterheadPreview({
                 <div className="text-[10px] font-mono text-zinc-400 mb-1">Draft — Pending Sign-off</div>
               )}
               <div className="font-serif italic font-semibold text-zinc-900 text-sm">
-                Dr. R. K. Sharma
+                {primarySignatory?.fullName || 'Dr. Deswal'}
               </div>
-              <div className="font-bold text-zinc-900 text-xs">Dr. R. K. Sharma</div>
-              <div className="font-mono text-[10px] text-zinc-600">MBBS, MD (Pathology)</div>
-              <div className="font-mono text-[10px] text-zinc-500">Consultant Pathologist</div>
+              <div className="font-bold text-zinc-900 text-xs">{primarySignatory?.fullName || 'Dr. Deswal'}</div>
+              <div className="font-mono text-[10px] text-zinc-600">{primarySignatory?.qualification || 'MBBS, MD (Pathology)'}</div>
+              <div className="font-mono text-[10px] text-zinc-500">
+                {primarySignatory?.councilRegistration ? `Regn: ${primarySignatory.councilRegistration}` : 'Authorized Signatory'}
+              </div>
             </div>
           </div>
 

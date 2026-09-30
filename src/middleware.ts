@@ -70,7 +70,15 @@ export async function middleware(request: NextRequest) {
   const isPublic = isPublicRoute(pathname);
   const isOnboarding = pathname === '/onboarding';
   const hasConfirmedLab = request.cookies.get('x-lab-id')?.value === 'confirmed';
-  const isAuthenticated = Boolean(user || hasConfirmedLab);
+
+  // Authentication is determined solely by the Supabase JWT user object.
+  // The x-lab-id cookie is ONLY used as the lab-onboarding confirmation signal —
+  // NOT as an authentication signal. This separation prevents two bugs:
+  //   (a) An expired x-lab-id cookie (e.g. after a week) would previously cause
+  //       Rule 3 to fire for authenticated + onboarded users, bouncing them to /onboarding.
+  //   (b) Using `user || hasConfirmedLab` allowed the cookie alone to bypass auth
+  //       checks, which is a security smell.
+  const isAuthenticated = Boolean(user);
 
   // Rule 1: Authenticated user hitting /login or /signup → dashboard
   if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
@@ -86,14 +94,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Rule 3: Authenticated user with no lab set hitting app route → /onboarding
-  if (user && !hasConfirmedLab && !isOnboarding && !isPublic) {
+  // Rule 3: Authenticated user whose lab-onboarding confirmation cookie has NOT been set → /onboarding.
+  // The AuthProvider (auth-provider.tsx) re-validates this by calling GET /labs/me on mount
+  // and re-sets the cookie with a 30-day max-age, so this should only fire for genuinely
+  // un-onboarded users (brand new signups), not returning users with an expired cookie.
+  if (isAuthenticated && !hasConfirmedLab && !isOnboarding && !isPublic) {
     const onboardingUrl = request.nextUrl.clone();
     onboardingUrl.pathname = '/onboarding';
     return NextResponse.redirect(onboardingUrl);
   }
 
-  // Rule 4: Authenticated user who already has a lab hitting /onboarding → /
+  // Rule 4: Authenticated + onboarded user hitting /onboarding → dashboard
   if (isAuthenticated && hasConfirmedLab && isOnboarding) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = '/';

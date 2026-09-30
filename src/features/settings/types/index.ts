@@ -14,6 +14,14 @@ export type StaffRole =
   | 'PHLEBOTOMIST'
   | 'BILLING';
 
+export type StationeryType = 'PLAIN' | 'PREPRINTED_HEADER' | 'PREPRINTED_HEADER_AND_FOOTER';
+
+export interface LabPrintSettings {
+  stationeryType: StationeryType;
+  headerMarginMm: number; // default: 48mm
+  footerMarginMm: number; // default: 24mm
+}
+
 export interface LabProfile {
   id: string;
   name: string;
@@ -29,6 +37,7 @@ export interface LabProfile {
   reportLanguage: ReportLanguage;
   accreditedSince?: string;
   scopeNotes?: string;
+  printSettings?: LabPrintSettings;
 }
 
 export interface StaffMember {
@@ -58,6 +67,7 @@ export interface UpdateLabDto {
   tagline?: string | null;
   footerNote?: string | null;
   reportLanguage?: ReportLanguage;
+  printSettings?: Partial<LabPrintSettings>;
 }
 
 export interface UpdateProfileDto {

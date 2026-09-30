@@ -14,19 +14,32 @@ import { Button } from '@/components/ui/button';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { downloadReportPdf } from '../../api/use-report-pdf';
 import { useLabProfile } from '@/features/settings/hooks/use-lab-profile';
-import {
-  SendWhatsAppModal,
-  NotificationStatusBadge,
-  useReportNotification,
-} from '@/features/notifications';
+import { SendWhatsAppModal, NotificationStatusBadge, useReportNotification } from '@/features/notifications';
+import { PaperStationerySelector } from './_components/paper-stationery-selector';
+import type { StationeryType } from '@/features/settings/types';
 import type { DetailedReport } from '../../types';
 
 interface PreviewActionToolbarProps {
   report: DetailedReport;
   isPublicView?: boolean;
+  stationeryType?: StationeryType;
+  onStationeryTypeChange?: (type: StationeryType) => void;
+  headerMarginMm?: number;
+  footerMarginMm?: number;
+  simulateBlankStationery?: boolean;
+  onToggleSimulateStationery?: (val: boolean) => void;
 }
 
-export function PreviewActionToolbar({ report, isPublicView = false }: PreviewActionToolbarProps) {
+export function PreviewActionToolbar({
+  report,
+  isPublicView = false,
+  stationeryType = 'PLAIN',
+  onStationeryTypeChange,
+  headerMarginMm = 48,
+  footerMarginMm = 24,
+  simulateBlankStationery = false,
+  onToggleSimulateStationery,
+}: PreviewActionToolbarProps) {
   const { data: labProfile } = useLabProfile();
   const labName = labProfile?.name || 'Diagnostic Laboratory';
   const [isDownloading, setIsDownloading] = React.useState(false);
@@ -164,6 +177,18 @@ export function PreviewActionToolbar({ report, isPublicView = false }: PreviewAc
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Download PDF</span>
           </Button>
+
+          {/* Paper Stationery Selector (Only for internal staff view) */}
+          {!isPublicView && onStationeryTypeChange && (
+            <PaperStationerySelector
+              stationeryType={stationeryType}
+              onChange={onStationeryTypeChange}
+              headerMarginMm={headerMarginMm}
+              footerMarginMm={footerMarginMm}
+              simulateBlankStationery={simulateBlankStationery}
+              onToggleSimulate={onToggleSimulateStationery || (() => {})}
+            />
+          )}
 
           {/* Print Button */}
           <Button

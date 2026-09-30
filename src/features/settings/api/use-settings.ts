@@ -15,92 +15,39 @@ export const STAFF_MEMBERS_QUERY_KEY = ['staff-members'] as const;
 export const CURRENT_PROFILE_QUERY_KEY = ['current-profile'] as const;
 
 export const DEMO_LAB_PROFILE: LabProfile = {
-  id: 'lab-apex-01',
-  name: 'Apex Diagnostic Center & Advanced Pathology Lab',
-  nablId: 'MC-4192 / 2024',
-  address: 'Shop 4, Ground Floor, 100ft Road, Indiranagar, Bengaluru - 560038',
-  phoneNumbers: ['+91 80 4123 4567'],
-  officialEmail: 'reports@apexdiagnostic.in',
-  whatsappNumber: '+91 98800 12345',
-  logoUrl: '/brand/apex_logo.svg',
-  accentColor: '#0F172A',
-  tagline: 'Precision Diagnostics & Clinical Pathology Excellence',
-  footerNote: 'NOT VALID FOR MEDICO LEGAL PURPOSE',
+  id: 'lab-deswal-01',
+  name: 'Deswal Diagnostic Laboratory',
+  nablId: '',
+  address: 'Near Main Bus Stand, Barara, Ambala, Haryana - 133201',
+  phoneNumbers: ['+91 85688 84848'],
+  officialEmail: '',
+  whatsappNumber: '+91 85688 84848',
+  logoUrl: null,
+  accentColor: '#0f766e',
+  tagline: 'Clinical Pathology, Biochemistry & Diagnostic Center',
+  footerNote: 'Computer Generated Diagnostic Examination Report',
   reportLanguage: 'en',
-  accreditedSince: '2021',
-  scopeNotes: 'Accredited testing scope: Clinical Biochemistry & Hematology under ISO 15189:2022.',
+  printSettings: {
+    stationeryType: 'PLAIN',
+    headerMarginMm: 48,
+    footerMarginMm: 24,
+  },
 };
 
 export const DEMO_STAFF_MEMBERS: StaffMember[] = [
   {
     id: 'staff-01',
-    labId: 'lab-apex-01',
-    fullName: 'Dr. Rajesh K. Sharma',
-    email: 'rajesh@apexdiagnostic.in',
+    labId: 'lab-deswal-01',
+    fullName: 'Dr. Deswal',
+    email: 'deswal@gmail.com',
     role: 'OWNER',
-    qualification: 'MD Path (Pathologist)',
-    councilRegistration: 'KMC Reg #48291',
-    signOffScope: 'Authorized Signatory · All Panels',
-    signatureUrl: '/signatures/dr_sharma_sig.png',
-    lastActive: 'Active now',
-    isOnline: true,
-    createdAt: '2023-01-15T09:00:00Z',
-  },
-  {
-    id: 'staff-02',
-    labId: 'lab-apex-01',
-    fullName: 'Dr. Sunita Nair',
-    email: 'sunita.nair@apexdiagnostic.in',
-    role: 'PATHOLOGIST',
-    qualification: 'MBBS, DCP (Clinical Pathology)',
-    councilRegistration: 'KMC Reg #51902',
-    signOffScope: 'Authorized Signatory · Hem & Biochem',
-    signatureUrl: '/signatures/dr_nair_sig.png',
-    lastActive: '2 hours ago',
-    isOnline: false,
-    createdAt: '2023-04-10T10:30:00Z',
-  },
-  {
-    id: 'staff-03',
-    labId: 'lab-apex-01',
-    fullName: 'S. Nair',
-    email: 's.nair@apexdiagnostic.in',
-    role: 'SR_TECHNICIAN',
-    qualification: 'B.Sc MLT (Hematology Spec)',
-    councilRegistration: 'KA-MLT-8812',
-    signOffScope: 'Specimen Accession & Analyzer Feed (Pre-validation only)',
-    signatureUrl: null,
-    lastActive: '15 mins ago',
-    isOnline: true,
-    createdAt: '2023-06-01T08:00:00Z',
-  },
-  {
-    id: 'staff-04',
-    labId: 'lab-apex-01',
-    fullName: 'Anand Vernekar',
-    email: 'anand.v@apexdiagnostic.in',
-    role: 'TECHNICIAN',
-    qualification: 'DMLT',
-    councilRegistration: 'KA-MLT-9421',
-    signOffScope: 'Phlebotomy & Data Entry (Barcode labeling & collection logging)',
+    qualification: 'MBBS, MD (Pathology)',
+    councilRegistration: 'HN-42918',
+    signOffScope: 'Authorized Signatory · All Diagnostic Panels',
     signatureUrl: null,
     lastActive: 'Active now',
     isOnline: true,
-    createdAt: '2023-08-20T11:00:00Z',
-  },
-  {
-    id: 'staff-05',
-    labId: 'lab-apex-01',
-    fullName: 'Priya G.',
-    email: 'billing@apexdiagnostic.in',
-    role: 'BILLING',
-    qualification: 'B.Com (Healthcare Admin)',
-    councilRegistration: null,
-    signOffScope: 'Invoicing & Cash Settlements Only (Zero clinical telemetry)',
-    signatureUrl: null,
-    lastActive: '1 day ago',
-    isOnline: false,
-    createdAt: '2023-11-05T09:15:00Z',
+    createdAt: '2024-01-01T09:00:00Z',
   },
 ];
 
@@ -114,6 +61,7 @@ export function useLabProfile() {
           ...DEMO_LAB_PROFILE,
           ...res,
           phoneNumbers: res.phoneNumbers || DEMO_LAB_PROFILE.phoneNumbers,
+          printSettings: res.printSettings || DEMO_LAB_PROFILE.printSettings,
         };
       } catch {
         return DEMO_LAB_PROFILE;
@@ -130,7 +78,14 @@ export function useUpdateLabProfile() {
       try {
         return await api.put<LabProfile>('/labs/current', dto);
       } catch {
-        return { ...DEMO_LAB_PROFILE, ...dto };
+        return {
+          ...DEMO_LAB_PROFILE,
+          ...dto,
+          printSettings: {
+            ...DEMO_LAB_PROFILE.printSettings,
+            ...(dto.printSettings || {}),
+          },
+        };
       }
     },
     onSuccess: (updated) => {

@@ -6,6 +6,7 @@ import { ShieldCheck, Save, RotateCcw, Check } from 'lucide-react';
 import { SettingsTabNav } from '@/features/settings/components/settings-tab-nav';
 import { LabProfileSection } from '@/features/settings/components/lab-profile-section';
 import { BrandingLetterheadSection } from '@/features/settings/components/branding-letterhead-section';
+import { StationerySettingsSection } from '@/features/settings/components/stationery-settings-section';
 import { PathologistSignaturesSection } from '@/features/settings/components/pathologist-signatures-section';
 import { TeamRolesSection } from '@/features/settings/components/team-roles-section';
 import { AnalyzerInterfacingSection } from '@/features/settings/components/analyzer-interfacing-section';
@@ -55,6 +56,7 @@ export default function SettingsPage() {
         whatsappNumber: profile.whatsappNumber,
         accentColor: profile.accentColor,
         footerNote: profile.footerNote,
+        printSettings: profile.printSettings,
       },
       {
         onSuccess: () => {
@@ -130,10 +132,16 @@ export default function SettingsPage() {
               )}
 
               {activeTab === 'branding' && (
-                <BrandingLetterheadSection
-                  profile={profile}
-                  onChange={handleProfileChange}
-                />
+                <div className="space-y-6">
+                  <BrandingLetterheadSection
+                    profile={profile}
+                    onChange={handleProfileChange}
+                  />
+                  <StationerySettingsSection
+                    profile={profile}
+                    onChange={handleProfileChange}
+                  />
+                </div>
               )}
 
               {activeTab === 'signatures' && (

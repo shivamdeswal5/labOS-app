@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         // Dynamic import to avoid circular dependencies with api client
-        const { api, ApiError } = await import('@/lib/api-client');
+        const { api } = await import('@/lib/api-client');
         const profile = await api.get<{ labId?: string | null }>('/labs/me');
         if (profile?.labId) {
           setLabIdCookie(true);
@@ -147,7 +147,11 @@ export function setLabIdCookie(hasLab: boolean) {
   if (!hasLab) return;
   // SameSite=Lax; no HttpOnly so middleware can read from request.cookies.
   // The value 'confirmed' is just a presence flag — actual labId is in the JWT.
-  document.cookie = 'x-lab-id=confirmed; path=/; SameSite=Lax; max-age=86400';
+  // max-age=2592000 = 30 days, matching Supabase's default session lifetime.
+  // Previously was 86400 (24h) which caused the middleware to redirect onboarded
+  // users to /onboarding after a day, because Rule 3 fires when user is set
+  // but hasConfirmedLab is false (cookie expired).
+  document.cookie = 'x-lab-id=confirmed; path=/; SameSite=Lax; max-age=2592000';
 }
 
 export function clearLabIdCookie() {

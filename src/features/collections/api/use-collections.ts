@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import type {
   CollectionRequest,
   CreateCollectionDto,
@@ -25,14 +25,17 @@ export function useCollections(filter?: CollectionFilter) {
         if (filter?.phlebotomistId) params.phlebotomistId = filter.phlebotomistId;
         if (filter?.preferredDate) params.preferredDate = filter.preferredDate;
 
-        const data = await apiClient.get<CollectionRequest[]>('/collections', { params });
-        if (Array.isArray(data) && data.length > 0) return data;
-        return DEMO_COLLECTIONS;
+        const data = await api.get<CollectionRequest[]>('/collections', { params });
+        if (Array.isArray(data)) {
+          return data;
+        }
+        return [];
       } catch {
+        console.warn('[useCollections] Backend unreachable, falling back to demo collections.');
         return DEMO_COLLECTIONS;
       }
     },
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: 1000 * 15,
   });
 }
 
@@ -41,7 +44,7 @@ export function useCollection(id: string) {
     queryKey: ['collections', id],
     queryFn: async () => {
       try {
-        const data = await apiClient.get<CollectionRequest>(`/collections/${id}`);
+        const data = await api.get<CollectionRequest>(`/collections/${id}`);
         if (data) return data;
       } catch {
         // Fallback
@@ -56,26 +59,45 @@ export function usePhlebotomists() {
   return useQuery({
     queryKey: ['collections', 'phlebotomists'],
     queryFn: async () => {
-      // In production can call GET /labs/staff?role=PHLEBOTOMIST
+      try {
+        const staff = await api.get<{ id: string; fullName: string; role: string }[]>('/labs/members');
+        const phlebs = staff?.filter((s) => s.role === 'PHLEBOTOMIST');
+        if (phlebs && phlebs.length > 0) {
+          return phlebs.map((p, idx) => ({
+            id: p.id,
+            name: p.fullName,
+            phone: '+91 94160 55412',
+            currentZone: 'Barara / Saha',
+            vehicleNumber: `HR-01-AB-${1000 + idx}`,
+            activeAssignmentsCount: 0,
+            status: 'ON_DUTY' as const,
+            coldBoxId: `COLD-BOX-0${idx + 1}`,
+            coldBoxTemp: '4.0°C',
+            lastPing: 'Active now',
+          }));
+        }
+      } catch {
+        // Fallback to pilot staff
+      }
       return DEMO_PHLEBOTOMISTS;
     },
     staleTime: 1000 * 60,
   });
 }
 
-export function useCollectionsKpiSummary() {
+export function useCollectionsKpiSummary(liveCollections?: CollectionRequest[]) {
   return useQuery<CollectionsKpiSummary>({
-    queryKey: ['collections', 'kpi-summary'],
+    queryKey: ['collections', 'kpi-summary', liveCollections?.length],
     queryFn: async () => {
-      const all = DEMO_COLLECTIONS;
+      const items = liveCollections ?? DEMO_COLLECTIONS;
       return {
-        totalBookingsToday: all.length,
-        fastingCount: all.filter((c) => c.isFastingRequired).length,
+        totalBookingsToday: items.length,
+        fastingCount: items.filter((c) => c.isFastingRequired).length,
         activeRunnersCount: DEMO_PHLEBOTOMISTS.filter((p) => p.status === 'ON_DUTY').length,
-        inTransitSamplesCount: all.filter(
+        inTransitSamplesCount: items.filter(
           (c) => c.status === 'IN_TRANSIT' || c.status === 'SAMPLE_COLLECTED',
         ).length,
-        deliveredToLabCount: all.filter((c) => c.status === 'DELIVERED_TO_LAB').length,
+        deliveredToLabCount: items.filter((c) => c.status === 'DELIVERED_TO_LAB').length,
         avgTurnaroundMinutes: 34,
       };
     },
@@ -88,19 +110,19 @@ export function useCreateCollection() {
   return useMutation({
     mutationFn: async (dto: CreateCollectionDto): Promise<CollectionRequest> => {
       try {
-        const res = await apiClient.post<CollectionRequest>('/collections', dto);
-        return (res as unknown as { data: CollectionRequest }).data || (res as unknown as CollectionRequest);
+        const res = await api.post<CollectionRequest>('/collections', dto);
+        return res;
       } catch {
         const newReq: CollectionRequest = {
           id: `col-req-${Date.now()}`,
-          labId: 'lab-apex-01',
-          requestNumber: `COL-2026-0${Math.floor(88 + Math.random() * 20)}`,
+          labId: '6aaabed8-3df0-4569-8b9f-6fcc85ecc783',
+          requestNumber: `HC-2026-0${Math.floor(88 + Math.random() * 20)}`,
           patientName: dto.patientName,
           patientPhone: dto.patientPhone,
-          patientAge: dto.patientAge || '45',
+          patientAge: dto.patientAge || '45 Y',
           patientSex: dto.patientSex || 'MALE',
           address: dto.address,
-          locality: 'Bengaluru',
+          locality: 'Barara',
           preferredDate: dto.preferredDate,
           timeSlot: dto.timeSlot,
           status: dto.assignedPhlebotomistId ? 'ASSIGNED' : 'REQUESTED',
@@ -133,7 +155,7 @@ export function useAssignPhlebotomist() {
   return useMutation({
     mutationFn: async ({ id, dto }: { id: string; dto: AssignPhlebotomistDto }) => {
       try {
-        return await apiClient.patch(`/collections/${id}/assign`, dto);
+        return await api.patch(`/collections/${id}/assign`, dto);
       } catch {
         const found = DEMO_COLLECTIONS.find((c) => c.id === id);
         if (found) {
@@ -158,7 +180,7 @@ export function useUpdateCollectionStatus() {
   return useMutation({
     mutationFn: async ({ id, dto }: { id: string; dto: UpdateCollectionStatusDto }) => {
       try {
-        return await apiClient.patch(`/collections/${id}/status`, dto);
+        return await api.patch(`/collections/${id}/status`, dto);
       } catch {
         const found = DEMO_COLLECTIONS.find((c) => c.id === id);
         if (found) {
@@ -197,7 +219,7 @@ export function useCancelCollection() {
   return useMutation({
     mutationFn: async ({ id, dto }: { id: string; dto: CancelCollectionDto }) => {
       try {
-        return await apiClient.post(`/collections/${id}/cancel`, dto);
+        return await api.post(`/collections/${id}/cancel`, dto);
       } catch {
         const found = DEMO_COLLECTIONS.find((c) => c.id === id);
         if (found) {

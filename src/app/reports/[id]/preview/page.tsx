@@ -13,6 +13,9 @@ import { Button } from '@/components/ui/button';
 import { PreviewActionToolbar } from '@/features/reports/components/report-preview/preview-action-toolbar';
 import { A4DocumentSheet } from '@/features/reports/components/report-preview/a4-document-sheet';
 import { useReport } from '@/features/reports/api/use-report';
+import { useLabProfile } from '@/features/settings/api/use-settings';
+import { ReportDispatchTimeline } from '@/features/notifications';
+import type { StationeryType } from '@/features/settings/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -23,6 +26,16 @@ export default function ReportPreviewPage({ params }: PageProps) {
   const reportId = resolvedParams.id;
 
   const { data: report, isLoading, isError, error, refetch } = useReport(reportId);
+  const { data: labProfile } = useLabProfile();
+
+  // Stationery selection & screen preview mode
+  const [selectedStationery, setSelectedStationery] = React.useState<StationeryType | null>(null);
+  const [simulateBlankStationery, setSimulateBlankStationery] = React.useState(false);
+
+  const defaultStationery = labProfile?.printSettings?.stationeryType || 'PLAIN';
+  const activeStationery = selectedStationery ?? defaultStationery;
+  const headerMarginMm = labProfile?.printSettings?.headerMarginMm ?? 48;
+  const footerMarginMm = labProfile?.printSettings?.footerMarginMm ?? 24;
 
   return (
     <AppShell variant="contained">
@@ -73,12 +86,30 @@ export default function ReportPreviewPage({ params }: PageProps) {
         {report && (
           <div className="flex flex-col gap-6">
             {/* Top Verification & Dispatch Toolbar */}
-            <PreviewActionToolbar report={report} isPublicView={false} />
+            <PreviewActionToolbar
+              report={report}
+              isPublicView={false}
+              stationeryType={activeStationery}
+              onStationeryTypeChange={setSelectedStationery}
+              headerMarginMm={headerMarginMm}
+              footerMarginMm={footerMarginMm}
+              simulateBlankStationery={simulateBlankStationery}
+              onToggleSimulateStationery={setSimulateBlankStationery}
+            />
 
             {/* Document Canvas Presentation */}
             <div className="w-full bg-muted/40 py-6 sm:py-8 px-2 sm:px-4 flex justify-center rounded-xl border border-border/60 overflow-x-auto print:bg-white print:p-0 print:border-none">
-              <A4DocumentSheet report={report} />
+              <A4DocumentSheet
+                report={report}
+                stationeryType={activeStationery}
+                headerMarginMm={headerMarginMm}
+                footerMarginMm={footerMarginMm}
+                simulateBlankStationery={simulateBlankStationery}
+              />
             </div>
+
+            {/* WhatsApp Dispatch & Delivery Timeline */}
+            <ReportDispatchTimeline reportId={report.id} defaultOpen={false} />
           </div>
         )}
       </div>

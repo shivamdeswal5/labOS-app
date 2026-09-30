@@ -17,7 +17,6 @@ import {
   useAssignPhlebotomist,
   useUpdateCollectionStatus,
   useCancelCollection,
-  DEMO_COLLECTIONS,
 } from '@/features/collections/api/use-collections';
 import type {
   CollectionStatus,
@@ -30,9 +29,7 @@ export default function CollectionsPage() {
   const [statusFilter, setStatusFilter] = React.useState<CollectionStatus | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [fastingOnly, setFastingOnly] = React.useState(false);
-  const [selectedCollectionId, setSelectedCollectionId] = React.useState<string>(
-    DEMO_COLLECTIONS[0].id,
-  );
+  const [selectedCollectionId, setSelectedCollectionId] = React.useState<string | null>(null);
   const [activeMobileView, setActiveMobileView] = React.useState<'list' | 'console'>('list');
 
   // Modal dialog states
@@ -42,20 +39,24 @@ export default function CollectionsPage() {
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
 
   // Queries
-  const { data: collections = DEMO_COLLECTIONS, refetch, isRefetching } = useCollections({
+  const { data: collections = [], refetch, isRefetching } = useCollections({
     status: statusFilter,
     search: searchQuery,
     fastingOnly,
   });
   const { data: phlebotomists = [] } = usePhlebotomists();
-  const { data: kpiSummary = {
+  const { data: kpiSummary } = useCollectionsKpiSummary(collections);
+
+  const summaryData = kpiSummary || {
     totalBookingsToday: collections.length,
     fastingCount: collections.filter((c) => c.isFastingRequired).length,
-    activeRunnersCount: 3,
-    inTransitSamplesCount: 2,
-    deliveredToLabCount: 1,
-    avgTurnaroundMinutes: 34,
-  } } = useCollectionsKpiSummary();
+    activeRunnersCount: phlebotomists.filter((p) => p.status === 'ON_DUTY').length,
+    inTransitSamplesCount: collections.filter(
+      (c) => c.status === 'IN_TRANSIT' || c.status === 'SAMPLE_COLLECTED',
+    ).length,
+    deliveredToLabCount: collections.filter((c) => c.status === 'DELIVERED_TO_LAB').length,
+    avgTurnaroundMinutes: 30,
+  };
 
   // Mutations
   const createBookingMutation = useCreateCollection();
@@ -65,10 +66,11 @@ export default function CollectionsPage() {
 
   // Active selected collection
   const selectedCollection = React.useMemo(() => {
+    if (!collections.length) return null;
     return (
       collections.find((c) => c.id === selectedCollectionId) ||
       collections[0] ||
-      DEMO_COLLECTIONS[0]
+      null
     );
   }, [collections, selectedCollectionId]);
 
@@ -215,7 +217,7 @@ export default function CollectionsPage() {
         )}
 
         {/* KPI Metrics Summary Ribbon */}
-        <CollectionsKpiRibbon summary={kpiSummary} />
+        <CollectionsKpiRibbon summary={summaryData} />
 
         {/* Mobile View Toggle (<1280px) */}
         <div className="xl:hidden flex items-center bg-muted/60 p-1 rounded-lg border border-border">
