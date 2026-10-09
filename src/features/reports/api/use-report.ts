@@ -202,21 +202,8 @@ export function useReport(reportId: string) {
         };
       }
 
-      // For real reports: query backend API directly with fallback safety
-      try {
-        return await api.get<DetailedReport>(`/reports/${reportId}`);
-      } catch (error) {
-        console.warn(`[useReport] Failed to fetch live report ${reportId}, providing fallback:`, error);
-        const found = DEMO_ACCESSIONS.find((r) => r.id === reportId);
-        if (found) {
-          return found;
-        }
-        return {
-          ...DEMO_REPORT,
-          id: reportId,
-          reportNumber: `R-${reportId.replace(/[^0-9]/g, '').slice(0, 8) || '20260924'}`,
-        };
-      }
+      // For real reports: query backend API directly
+      return await api.get<DetailedReport>(`/reports/${reportId}`);
     },
     staleTime: 10 * 1000, // Fresh for 10s
     refetchOnWindowFocus: false,

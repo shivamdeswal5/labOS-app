@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Search, Plus, Bell, Menu, ShieldCheck, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { TrialHeaderBadge } from '@/features/subscription';
 
 interface HeaderProps {
   sidebarCollapsed: boolean;
@@ -68,6 +69,9 @@ export function Header({
 
       {/* Right: Telemetry & Actions */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Subscription Status & Upgrade Trigger */}
+        <TrialHeaderBadge />
+
         {/* Compliance Badge */}
         <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted border border-border text-[11px] font-mono text-muted-foreground">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>

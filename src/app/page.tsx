@@ -17,31 +17,42 @@ import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
 import { useDashboardStats } from '@/features/dashboard/api/use-dashboard-stats';
 import { useLabProfile } from '@/features/settings/hooks/use-lab-profile';
+import { useTenantSubscriptionQuery } from '@/features/subscription/api/subscription.queries';
 import { KpiMetrics } from '@/features/dashboard/components/kpi-metrics';
 import { ActionQueue } from '@/features/dashboard/components/action-queue';
+import { GettingStartedGuide } from '@/features/dashboard/components/getting-started-guide';
 
 export default function DashboardPage() {
   const { data: stats, isLoading, isError, error, refetch, isFetching } = useDashboardStats();
   const { data: labProfile } = useLabProfile();
+  const { data: subscription } = useTenantSubscriptionQuery();
   const labName = labProfile?.name || 'Diagnostic Center';
+
+  const isTrial = subscription?.status === 'TRIALING';
+  const subLabel = isTrial
+    ? `14-Day Free Trial (${subscription?.daysRemaining ?? 14}d left)`
+    : `${subscription?.planName || 'Active Plan'}`;
 
   return (
     <AppShell>
       <div className="space-y-6">
-        {/* Workspace Title & Telemetry Header */}
+        {/* Workspace Title & Facility Identity Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-                Lab Health & Diagnostics Telemetry
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                {labName}
               </h1>
               <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                LIVE
+                LIVE FEED
+              </span>
+              <span className="inline-flex items-center text-[11px] font-mono px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 font-semibold">
+                {subLabel}
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Station 04 • Clinical Biochemistry & Immuno • {labName}
+              Station 01 • NABL ISO 15189 Aligned • Mission Control
             </p>
           </div>
 
@@ -53,7 +64,7 @@ export default function DashboardPage() {
               onClick={() => refetch()}
               disabled={isFetching}
               className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-              title="Force Telemetry Refetch"
+              title="Force Registry Refetch"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
@@ -62,11 +73,11 @@ export default function DashboardPage() {
             <Button asChild size="sm" variant="outline" className="h-8 text-xs gap-1.5">
               <Link href="/accessions">
                 <Barcode className="w-3.5 h-3.5" />
-                <span>Scan Tube</span>
+                <span>Accession Register</span>
               </Link>
             </Button>
 
-            <Button asChild size="sm" className="h-8 text-xs gap-1.5 font-semibold">
+            <Button asChild size="sm" className="h-8 text-xs gap-1.5 font-semibold bg-primary text-primary-foreground shadow-xs">
               <Link href="/reports/new">
                 <FilePlus2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">New Patient Report</span>
@@ -75,6 +86,9 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
+
+        {/* First-Time Getting Started Setup Guide (Collapsible/Dismissible) */}
+        <GettingStartedGuide profile={labProfile} stats={stats} />
 
         {/* Error Fallback Banner */}
         {isError && (
@@ -97,10 +111,10 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Priority Action Queue (Stitch Telemetry) */}
+        {/* Priority Action Queue (Actionable Exceptions) */}
         <ActionQueue stats={stats} isLoading={isLoading} />
 
-        {/* Primary KPI Metrics Row */}
+        {/* Primary KPI Metrics Row (4 Real KPIs) */}
         <KpiMetrics stats={stats} isLoading={isLoading} />
 
         {/* Secondary Operational Navigation Tiles */}

@@ -97,34 +97,14 @@ export function usePatients(search?: string) {
         const queryParam = search ? `?search=${encodeURIComponent(search)}` : '';
         const data = await api.get<Patient[]>(`/patients${queryParam}`);
 
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           return data;
         }
 
-        // Return filtered demo cohort
-        if (search && search.trim().length > 0) {
-          const q = search.toLowerCase().trim();
-          return DEMO_PATIENTS.filter(
-            (p) =>
-              p.name.toLowerCase().includes(q) ||
-              p.phone?.toLowerCase().includes(q) ||
-              p.patientNumber.toLowerCase().includes(q),
-          );
-        }
-
-        return DEMO_PATIENTS;
-      } catch {
-        console.warn('[usePatients] Failed to fetch /patients, falling back to demo seed cohort.');
-        if (search && search.trim().length > 0) {
-          const q = search.toLowerCase().trim();
-          return DEMO_PATIENTS.filter(
-            (p) =>
-              p.name.toLowerCase().includes(q) ||
-              p.phone?.toLowerCase().includes(q) ||
-              p.patientNumber.toLowerCase().includes(q),
-          );
-        }
-        return DEMO_PATIENTS;
+        return [];
+      } catch (err) {
+        console.warn('[usePatients] Failed to fetch /patients:', err);
+        return [];
       }
     },
     staleTime: 30 * 1000,
@@ -141,9 +121,9 @@ export function usePatient(id?: string | null) {
       if (!id) return null;
       try {
         const data = await api.get<Patient>(`/patients/${id}`);
-        return data || DEMO_PATIENTS.find((p) => p.id === id) || null;
+        return data || null;
       } catch {
-        return DEMO_PATIENTS.find((p) => p.id === id) || null;
+        return null;
       }
     },
     enabled: Boolean(id),

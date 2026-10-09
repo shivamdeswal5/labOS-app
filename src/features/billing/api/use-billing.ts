@@ -32,14 +32,14 @@ export function useInvoices(filter?: InvoiceFilter) {
         const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
         const data = await api.get<Invoice[]>(`/invoices${queryString}`);
 
-        if (Array.isArray(data) && data.length > 0) {
-          return data;
+        if (Array.isArray(data)) {
+          return filterInvoices(data, filter);
         }
 
-        return filterInvoices(DEMO_INVOICES, filter);
-      } catch {
-        // Resilient fallback to demo cohort during development/preview mode
-        return filterInvoices(DEMO_INVOICES, filter);
+        return [];
+      } catch (err) {
+        console.warn('[useInvoices] Failed to fetch /invoices:', err);
+        return [];
       }
     },
     staleTime: 30 * 1000,
@@ -88,13 +88,14 @@ export function useExpenses(filter?: ExpenseFilter) {
         const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
         const data = await api.get<Expense[]>(`/expenses${queryString}`);
 
-        if (Array.isArray(data) && data.length > 0) {
-          return data;
+        if (Array.isArray(data)) {
+          return filterExpenses(data, filter);
         }
 
-        return filterExpenses(DEMO_EXPENSES, filter);
-      } catch {
-        return filterExpenses(DEMO_EXPENSES, filter);
+        return [];
+      } catch (err) {
+        console.warn('[useExpenses] Failed to fetch /expenses:', err);
+        return [];
       }
     },
     staleTime: 30 * 1000,
@@ -121,21 +122,35 @@ function filterExpenses(expenses: Expense[], filter?: ExpenseFilter): Expense[] 
   return result;
 }
 
+const EMPTY_FINANCIAL_SUMMARY: FinancialSummary = {
+  totalRevenue: 0,
+  totalPaid: 0,
+  totalPending: 0,
+  totalExpenses: 0,
+  netMargin: 0,
+  marginPercentage: 0,
+  invoicesCount: 0,
+  expensesCount: 0,
+  realizedPercentage: 0,
+  collectionsByMethod: {},
+  expensesByCategory: {},
+};
+
 export function useFinancialSummary() {
   return useQuery<FinancialSummary>({
     queryKey: FINANCIAL_SUMMARY_QUERY_KEY,
     queryFn: async () => {
       try {
-        const data = await api.get<FinancialSummary>('/billing/financial-summary');
+        const data = await api.get<Partial<FinancialSummary>>('/billing/financial-summary');
         if (data && typeof data.totalRevenue === 'number') {
           return {
-            ...DEMO_FINANCIAL_SUMMARY,
+            ...EMPTY_FINANCIAL_SUMMARY,
             ...data,
           };
         }
-        return DEMO_FINANCIAL_SUMMARY;
+        return EMPTY_FINANCIAL_SUMMARY;
       } catch {
-        return DEMO_FINANCIAL_SUMMARY;
+        return EMPTY_FINANCIAL_SUMMARY;
       }
     },
     staleTime: 60 * 1000,

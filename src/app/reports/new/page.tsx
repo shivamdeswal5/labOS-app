@@ -14,6 +14,11 @@ import { useSearchParams } from 'next/navigation';
 import { usePanels } from '@/features/reports/api/use-panels';
 import { useCreateReport } from '@/features/reports/api/use-create-report';
 import { usePatient } from '@/features/patients/api/use-patients';
+import {
+  useTenantSubscriptionQuery,
+  AccessionLockBanner,
+  PlanUpgradeModal,
+} from '@/features/subscription';
 import type { Patient } from '@/features/reports/types';
 import type { Invoice } from '@/features/billing/types';
 
@@ -37,7 +42,11 @@ interface NewReportFormProps {
 
 function NewReportForm({ preselectedPatient }: NewReportFormProps) {
   const { data: panels } = usePanels();
+  const { data: subscription } = useTenantSubscriptionQuery();
   const createReportMutation = useCreateReport();
+  const isLocked = subscription?.status === 'LOCKED';
+
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = React.useState<boolean>(false);
 
   // Pure clinical intake state — pre-populate if existing patient was passed via URL
   const [formState, setFormState] = React.useState<PatientFormState>(() => ({
@@ -98,6 +107,10 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
 
   // Submit handler — IDs and Invoices are assigned atomically by backend in PostgreSQL
   const handleSubmit = async () => {
+    if (isLocked) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
     if (createReportMutation.isPending || createdReport) return;
     setErrorMessage(null);
 
@@ -219,6 +232,11 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
           ]}
         />
 
+        {/* Subscription Locked Guard Banner */}
+        {isLocked && (
+          <AccessionLockBanner onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
+        )}
+
         {/* Error Alert */}
         {errorMessage && (
           <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-xs text-destructive">
@@ -325,6 +343,12 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
             onRegisterNext={handleRegisterNext}
           />
         )}
+
+        {/* Subscription Upgrade Modal */}
+        <PlanUpgradeModal
+          isOpen={isUpgradeModalOpen}
+          onClose={() => setIsUpgradeModalOpen(false)}
+        />
       </div>
     </AppShell>
   );

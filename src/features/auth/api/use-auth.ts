@@ -63,7 +63,8 @@ export function useSignup() {
         // Email confirmation required — caller handles UI state
         return;
       }
-      router.push('/onboarding');
+      const search = typeof window !== 'undefined' ? window.location.search : '';
+      router.push(`/onboarding${search}`);
       router.refresh();
     },
   });

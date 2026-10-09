@@ -18,6 +18,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/formatters';
 import { InvoiceReceiptModal } from '@/features/billing/components/invoice-receipt-modal';
+import { ThermalStickerModal } from '../thermal-sticker-modal';
 import type { Invoice } from '@/features/billing/types';
 
 export interface SampleSuccessModalProps {
@@ -55,6 +56,7 @@ export function SampleSuccessModal({
 }: SampleSuccessModalProps) {
   const [copied, setCopied] = React.useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = React.useState(false);
+  const [isStickerModalOpen, setIsStickerModalOpen] = React.useState(false);
 
   const displayInvoice: Invoice = React.useMemo(() => {
     const finalNet = netTotal ?? Math.max(0, totalPrice - discount);
@@ -158,25 +160,37 @@ export function SampleSuccessModal({
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCopyBarcode}
-              className="h-8 text-xs gap-1.5 self-start sm:self-auto"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>Copy UID</span>
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setIsStickerModalOpen(true)}
+                className="h-8 text-xs font-semibold gap-1.5 bg-teal-600 hover:bg-teal-700 text-white shadow-xs cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print 50×25mm Sticker</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyBarcode}
+                className="h-8 text-xs gap-1.5 cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>Copy UID</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Linked Tax Invoice & Payment Receipt Strip */}
@@ -306,6 +320,17 @@ export function SampleSuccessModal({
       isOpen={isReceiptModalOpen}
       invoice={displayInvoice}
       onClose={() => setIsReceiptModalOpen(false)}
+    />
+
+    {/* Dedicated 50x25mm Thermal Barcode Sticker Print Modal */}
+    <ThermalStickerModal
+      isOpen={isStickerModalOpen}
+      onClose={() => setIsStickerModalOpen(false)}
+      reportNumber={reportNumber}
+      patientName={patientName}
+      patientAge={patientAge}
+      patientSex={patientSex}
+      panelNames={selectedPanelNames}
     />
   </>
 );

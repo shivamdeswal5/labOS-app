@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Search, X, ChevronRight, RefreshCw } from 'lucide-react';
+import { Search, X, ChevronRight, RefreshCw, Stethoscope } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
-import { EllipsisCell, TablePagination } from '@/components/shared';
+import { EllipsisCell, TablePagination, EmptyState } from '@/components/shared';
 import type { ReferringDoctor } from '../types';
 
 interface DoctorRosterTableProps {
@@ -124,20 +124,33 @@ export function DoctorRosterTable({
         </div>
       </div>
 
-      {/* Table Element */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="bg-muted/40 text-muted-foreground font-mono text-[10px] uppercase tracking-wider border-b border-border">
-              <th className="py-2.5 px-3">Doctor Name &amp; Spec</th>
-              <th className="py-2.5 px-3">Affiliation</th>
-              <th className="py-2.5 px-2.5">Model</th>
-              <th className="py-2.5 px-3 text-right">Referrals</th>
-              <th className="py-2.5 px-3 text-right">Owed</th>
-              <th className="py-2.5 px-3 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
+      {/* Table Element or Empty State */}
+      {filteredDoctors.length === 0 ? (
+        <div className="p-8">
+          <EmptyState
+            icon={Stethoscope}
+            title="No Referring Clinicians Found"
+            description={
+              searchQuery
+                ? "No doctors matched your search criteria. Try a different name or specialty."
+                : "No referring clinicians registered in your roster yet. Add your first doctor to track patient referrals and commission ledgers."
+            }
+          />
+        </div>
+      ) : (
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-muted/40 text-muted-foreground font-mono text-[10px] uppercase tracking-wider border-b border-border">
+                <th className="py-2.5 px-3">Doctor Name &amp; Spec</th>
+                <th className="py-2.5 px-3">Affiliation</th>
+                <th className="py-2.5 px-2.5">Model</th>
+                <th className="py-2.5 px-3 text-right">Referrals</th>
+                <th className="py-2.5 px-3 text-right">Owed</th>
+                <th className="py-2.5 px-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
             {filteredDoctors.map((doctor) => {
               const isSelected = doctor.id === selectedDoctorId;
               const hasPending = doctor.pendingAmount > 0;
@@ -278,6 +291,7 @@ export function DoctorRosterTable({
           </tbody>
         </table>
       </div>
+      )}
 
       {/* URL-Synchronized Table Pagination */}
       <TablePagination totalCount={filteredDoctors.length} />

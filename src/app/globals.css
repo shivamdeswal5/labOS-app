@@ -59,8 +59,8 @@
     --popover: #ffffff;
     --popover-foreground: #09090b;
 
-    /* Primary Ink */
-    --primary: #09090b;
+    /* Primary Brand Ink (Medical Deep Teal) */
+    --primary: #0d9488;
     --primary-foreground: #ffffff;
 
     /* Neutral & Muted Surfaces */
@@ -78,7 +78,7 @@
     --border-subtle: #e4e4e7;
     --border-default: #d4d4d8;
     --input: #d4d4d8;
-    --ring: #09090b;
+    --ring: #0d9488;
 
     /* Semantic Telemetry Palette */
     --destructive: #ef4444;
@@ -128,8 +128,8 @@
     --popover: #121215;
     --popover-foreground: #fafafa;
 
-    --primary: #fafafa;
-    --primary-foreground: #09090b;
+    --primary: #14b8a6;
+    --primary-foreground: #ffffff;
 
     --secondary: #27272a;
     --secondary-foreground: #fafafa;
@@ -144,7 +144,7 @@
     --border-subtle: #27272a;
     --border-default: #3f3f46;
     --input: #3f3f46;
-    --ring: #d4d4d8;
+    --ring: #14b8a6;
 
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;

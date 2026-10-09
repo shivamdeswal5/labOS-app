@@ -28,41 +28,20 @@ export function useNotificationLogs(params?: ListNotificationsParams) {
     queryFn: async () => {
       try {
         const response = await notificationsService.list(params);
-        if (response && Array.isArray(response.data) && response.data.length > 0) {
+        if (response && Array.isArray(response.data)) {
           return response.data;
         }
-        return filterDemoLogs(DEMO_NOTIFICATION_LOGS, params);
-      } catch {
-        return filterDemoLogs(DEMO_NOTIFICATION_LOGS, params);
+        return [];
+      } catch (err) {
+        console.warn('[useNotificationLogs] Failed to fetch notification logs:', err);
+        return [];
       }
     },
     staleTime: 15 * 1000,
   });
 }
 
-function filterDemoLogs(
-  logs: NotificationLog[],
-  params?: ListNotificationsParams,
-): NotificationLog[] {
-  let result = [...logs];
-  if (params?.channel) {
-    result = result.filter((l) => l.channel === params.channel);
-  }
-  if (params?.status) {
-    result = result.filter((l) => l.status === params.status);
-  }
-  if (params?.recipientType) {
-    result = result.filter((l) => l.recipientType === params.recipientType);
-  }
-  if (params?.destination) {
-    const q = params.destination.toLowerCase();
-    result = result.filter((l) => l.destination.toLowerCase().includes(q));
-  }
-  if (params?.reportId) {
-    result = result.filter((l) => l.payload?.reportId === params.reportId);
-  }
-  return result;
-}
+
 
 /**
  * Hook to retrieve the latest notification log specifically for a given report.

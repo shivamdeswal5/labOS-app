@@ -8,6 +8,7 @@ import {
   Download,
   CheckCircle2,
   FlaskConical,
+  FilePlus2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
@@ -61,7 +62,15 @@ export function AccessionTable({ reports, onOpenWhatsApp }: AccessionTableProps)
       <EmptyState
         icon={FlaskConical}
         title="No Accession Records Found"
-        description="No diagnostic accessions matched your filter criteria. Try adjusting your search query or status filter."
+        description="No diagnostic accessions registered yet. Register your first walk-in patient sample to begin tracking."
+        action={
+          <Button asChild size="sm" className="gap-1.5 text-xs font-semibold">
+            <Link href="/reports/new">
+              <FilePlus2 className="w-3.5 h-3.5" />
+              <span>Register First Sample</span>
+            </Link>
+          </Button>
+        }
       />
     );
   }

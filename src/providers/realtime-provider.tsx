@@ -127,6 +127,19 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
         };
         setToasts((prev) => [newToast, ...prev]);
         setTimeout(() => dismissToast(newToast.id), 5000);
+      } else if (message.event === RealtimeChannelEnum.SUBSCRIPTION_ACTIVATED) {
+        queryClient.invalidateQueries({ queryKey: ['tenant-subscription'] });
+        const payload = message.payload as { planName?: string } | undefined;
+        const newToast: RealtimeToastAlert = {
+          id: `toast-${Date.now()}-${Math.random()}`,
+          type: 'SUCCESS',
+          title: '🎉 Subscription Activated!',
+          message: `Your ${payload?.planName || 'Plan'} is now active. All capabilities unlocked!`,
+          timestamp: new Date().toLocaleTimeString(),
+          traceId: message.traceId,
+        };
+        setToasts((prev) => [newToast, ...prev]);
+        setTimeout(() => dismissToast(newToast.id), 8000);
       }
     },
     [queryClient, dismissToast],

@@ -27,21 +27,10 @@ export function useDoctors(search?: string) {
           }));
         }
 
-        return DEMO_DOCTORS;
-      } catch {
-        console.warn('[useDoctors] Failed to fetch /referrals/doctors, falling back to demo cohort.');
-        if (search && search.trim().length > 0) {
-          const q = search.toLowerCase().trim();
-          return DEMO_DOCTORS.filter(
-            (d) =>
-              d.name.toLowerCase().includes(q) ||
-              d.clinic?.toLowerCase().includes(q) ||
-              d.specialty?.toLowerCase().includes(q) ||
-              d.registrationNumber?.toLowerCase().includes(q) ||
-              d.phone?.toLowerCase().includes(q),
-          );
-        }
-        return DEMO_DOCTORS;
+        return [];
+      } catch (err) {
+        console.warn('[useDoctors] Failed to fetch /referrals/doctors:', err);
+        return [];
       }
     },
     staleTime: 30 * 1000,

@@ -9,7 +9,6 @@ import type {
   UpdateOutsourcedStatusDto,
   OutsourcedSummaryStats,
 } from '../types';
-import { DEMO_OUTSOURCED_TESTS } from '@/lib/demo-data/outsourced';
 
 export const OUTSOURCED_QUERY_KEY = (status?: OutsourcedTestStatus, reportId?: string) =>
   ['referrals', 'outsourced', { status, reportId }] as const;
@@ -22,67 +21,36 @@ export function useOutsourcedTests(status?: OutsourcedTestStatus, reportId?: str
     queryFn: async () => {
       try {
         const data = await outsourcedService.listOutsourcedTests(status, reportId);
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           return data.map((item) => {
-            const demoMatch = DEMO_OUTSOURCED_TESTS.find((d) => d.id === item.id || d.reportId === item.reportId);
             const trackingMatch = item.notes?.match(/Tracking:\s*([A-Za-z0-9-]+)/i);
             const resultMatch = item.notes?.match(/Result received:\s*(.*)/i);
-            const isPilotingReport = item.reportId === 'f14faf1a-0151-4183-b3ab-012366668d29';
 
             return {
               ...item,
               cost: Number(item.cost) || 0,
-              reportNumber:
-                item.reportNumber ||
-                (isPilotingReport ? 'R-20260924-0001' : demoMatch?.reportNumber || `R-${item.reportId.slice(0, 8).toUpperCase()}`),
-              patientName:
-                item.patientName ||
-                (isPilotingReport ? 'Rajesh Kumar' : demoMatch?.patientName || 'Rajesh Kumar'),
-              patientAge:
-                item.patientAge ||
-                (isPilotingReport ? '45 Y' : demoMatch?.patientAge || '45 Y'),
-              patientSex:
-                item.patientSex ||
-                (isPilotingReport ? 'Male' : demoMatch?.patientSex || 'Male'),
-              courierTrackingNumber:
-                item.courierTrackingNumber ||
-                (trackingMatch ? trackingMatch[1] : demoMatch?.courierTrackingNumber),
-              courierPartner:
-                item.courierPartner ||
-                (item.notes?.includes('BlueDart') ? 'BlueDart Express' : demoMatch?.courierPartner),
-              patientFee:
-                item.patientFee ||
-                demoMatch?.patientFee ||
-                (item.cost ? Math.round(Number(item.cost) * 2.5) : 800),
-              resultSummary:
-                item.resultSummary ||
-                (resultMatch ? resultMatch[1] : undefined),
+              reportNumber: item.reportNumber || `R-${item.reportId.slice(0, 8).toUpperCase()}`,
+              patientName: item.patientName || 'Referred Patient',
+              patientAge: item.patientAge || '—',
+              patientSex: item.patientSex || '—',
+              courierTrackingNumber: item.courierTrackingNumber || (trackingMatch ? trackingMatch[1] : undefined),
+              courierPartner: item.courierPartner || (item.notes?.includes('BlueDart') ? 'BlueDart Express' : undefined),
+              patientFee: item.patientFee || (item.cost ? Math.round(Number(item.cost) * 2.5) : 0),
+              resultSummary: item.resultSummary || (resultMatch ? resultMatch[1] : undefined),
             };
           });
         }
-        return filterDemoOutsourced(DEMO_OUTSOURCED_TESTS, status, reportId);
-      } catch {
-        return filterDemoOutsourced(DEMO_OUTSOURCED_TESTS, status, reportId);
+        return [];
+      } catch (err) {
+        console.warn('[useOutsourcedTests] Error fetching outsourced tests:', err);
+        return [];
       }
     },
     staleTime: 10 * 1000,
   });
 }
 
-function filterDemoOutsourced(
-  tests: OutsourcedTest[],
-  status?: OutsourcedTestStatus,
-  reportId?: string,
-): OutsourcedTest[] {
-  let result = [...tests];
-  if (status) {
-    result = result.filter((t) => t.status === status);
-  }
-  if (reportId) {
-    result = result.filter((t) => t.reportId === reportId);
-  }
-  return result;
-}
+
 
 export function useCreateOutsourcedTest() {
   const queryClient = useQueryClient();

@@ -30,9 +30,9 @@ export function useCollections(filter?: CollectionFilter) {
           return data;
         }
         return [];
-      } catch {
-        console.warn('[useCollections] Backend unreachable, falling back to demo collections.');
-        return DEMO_COLLECTIONS;
+      } catch (err) {
+        console.warn('[useCollections] Backend error:', err);
+        return [];
       }
     },
     staleTime: 1000 * 15,
@@ -49,7 +49,7 @@ export function useCollection(id: string) {
       } catch {
         // Fallback
       }
-      return DEMO_COLLECTIONS.find((c) => c.id === id) || DEMO_COLLECTIONS[0];
+      return null;
     },
     enabled: !!id,
   });
@@ -67,7 +67,7 @@ export function usePhlebotomists() {
             id: p.id,
             name: p.fullName,
             phone: '+91 94160 55412',
-            currentZone: 'Barara / Saha',
+            currentZone: 'Central Zone',
             vehicleNumber: `HR-01-AB-${1000 + idx}`,
             activeAssignmentsCount: 0,
             status: 'ON_DUTY' as const,
@@ -77,28 +77,29 @@ export function usePhlebotomists() {
           }));
         }
       } catch {
-        // Fallback to pilot staff
+        // Handled cleanly
       }
-      return DEMO_PHLEBOTOMISTS;
+      return [];
     },
     staleTime: 1000 * 60,
   });
 }
 
 export function useCollectionsKpiSummary(liveCollections?: CollectionRequest[]) {
+  const { data: phlebs = [] } = usePhlebotomists();
   return useQuery<CollectionsKpiSummary>({
-    queryKey: ['collections', 'kpi-summary', liveCollections?.length],
+    queryKey: ['collections', 'kpi-summary', liveCollections?.length, phlebs.length],
     queryFn: async () => {
-      const items = liveCollections ?? DEMO_COLLECTIONS;
+      const items = liveCollections ?? [];
       return {
         totalBookingsToday: items.length,
         fastingCount: items.filter((c) => c.isFastingRequired).length,
-        activeRunnersCount: DEMO_PHLEBOTOMISTS.filter((p) => p.status === 'ON_DUTY').length,
+        activeRunnersCount: phlebs.filter((p) => p.status === 'ON_DUTY').length,
         inTransitSamplesCount: items.filter(
           (c) => c.status === 'IN_TRANSIT' || c.status === 'SAMPLE_COLLECTED',
         ).length,
         deliveredToLabCount: items.filter((c) => c.status === 'DELIVERED_TO_LAB').length,
-        avgTurnaroundMinutes: 34,
+        avgTurnaroundMinutes: items.length > 0 ? 34 : 0,
       };
     },
   });

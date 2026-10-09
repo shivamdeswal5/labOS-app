@@ -464,13 +464,9 @@ export function useReports(status?: ReportStatus, patientId?: string) {
         }
 
         return [];
-      } catch {
-        console.warn('[useReports] Failed to fetch /reports, falling back to demo accessions.');
-        return DEMO_ACCESSIONS.filter((item) => {
-          if (status && item.status !== status) return false;
-          if (patientId && item.patientId !== patientId) return false;
-          return true;
-        });
+      } catch (err) {
+        console.warn('[useReports] Failed to fetch /reports:', err);
+        return [];
       }
     },
     staleTime: 15 * 1000, // 15s cache

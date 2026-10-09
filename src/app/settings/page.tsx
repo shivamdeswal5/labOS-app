@@ -10,6 +10,7 @@ import { StationerySettingsSection } from '@/features/settings/components/statio
 import { PathologistSignaturesSection } from '@/features/settings/components/pathologist-signatures-section';
 import { TeamRolesSection } from '@/features/settings/components/team-roles-section';
 import { AnalyzerInterfacingSection } from '@/features/settings/components/analyzer-interfacing-section';
+import { SubscriptionSettingsSection } from '@/features/settings/components/subscription-settings-section';
 import {
   useLabProfile,
   useUpdateLabProfile,
@@ -159,8 +160,11 @@ export default function SettingsPage() {
 
               {activeTab === 'analyzers' && <AnalyzerInterfacingSection />}
 
-              {/* Section 4: Operational Action Footer */}
-              <div className="bg-card rounded-xl p-5 border border-border shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+              {activeTab === 'billing' && <SubscriptionSettingsSection />}
+
+              {/* Section 4: Operational Action Footer (Profile & Branding) */}
+              {activeTab !== 'billing' && activeTab !== 'analyzers' && (
+                <div className="bg-card rounded-xl p-5 border border-border shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
                   <span className="font-mono text-xs">
@@ -194,7 +198,8 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </div>
-            </>
+            )}
+          </>
           )}
         </div>
       </div>

@@ -6,8 +6,9 @@ import {
   X,
   ChevronRight,
   RefreshCw,
+  Users,
 } from 'lucide-react';
-import { EllipsisCell, TablePagination } from '@/components/shared';
+import { EllipsisCell, TablePagination, EmptyState } from '@/components/shared';
 import type { Patient } from '@/features/reports/types';
 
 interface PatientListTableProps {
@@ -118,20 +119,33 @@ export function PatientListTable({
         </div>
       </div>
 
-      {/* Table Roster View */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="bg-muted/40 text-muted-foreground font-mono text-[10px] uppercase tracking-wider border-b border-border">
-              <th className="py-2.5 px-3">Patient & ID</th>
-              <th className="py-2.5 px-3">Contact</th>
-              <th className="py-2.5 px-3">Last Visit / Test</th>
-              <th className="py-2.5 px-2 text-center">Reports</th>
-              <th className="py-2.5 px-3">Referring Doctor</th>
-              <th className="py-2.5 px-2 text-right"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
+      {/* Table Roster View or Empty State */}
+      {filteredPatients.length === 0 ? (
+        <div className="p-8">
+          <EmptyState
+            icon={Users}
+            title="No Patients Found"
+            description={
+              searchQuery
+                ? "No patient records matched your search query. Try checking by phone number or name."
+                : "No patient records found in your directory yet. Register your first patient to begin tracking their longitudinal history."
+            }
+          />
+        </div>
+      ) : (
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-muted/40 text-muted-foreground font-mono text-[10px] uppercase tracking-wider border-b border-border">
+                <th className="py-2.5 px-3">Patient & ID</th>
+                <th className="py-2.5 px-3">Contact</th>
+                <th className="py-2.5 px-3">Last Visit / Test</th>
+                <th className="py-2.5 px-2 text-center">Reports</th>
+                <th className="py-2.5 px-3">Referring Doctor</th>
+                <th className="py-2.5 px-2 text-right"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
             {filteredPatients.map((patient) => {
               const isSelected = patient.id === selectedPatientId;
 
@@ -227,6 +241,7 @@ export function PatientListTable({
           </tbody>
         </table>
       </div>
+      )}
 
       {/* Pagination Footer */}
       <TablePagination totalCount={filteredPatients.length} />

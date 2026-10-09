@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from '../sidebar';
 import { useLabProfile } from '@/features/settings/hooks/use-lab-profile';
 import { useRBAC } from '@/features/auth/hooks/use-rbac';
+import { PathiqLogo } from '@/components/ui/brand';
 
 interface MobileNavProps {
   open: boolean;
@@ -50,13 +51,8 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         <div className="flex flex-col flex-1 min-h-0">
           {/* Header */}
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-base shadow-sm">
-                L
-              </div>
-              <span className="font-bold text-lg tracking-tight text-foreground">
-                Lab<span className="text-primary">OS</span>
-              </span>
+            <div className="flex items-center gap-2">
+              <PathiqLogo variant="icon" size="md" />
             </div>
             <button
               type="button"

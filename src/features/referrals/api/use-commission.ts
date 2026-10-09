@@ -18,7 +18,13 @@ export const COMMISSION_SUMMARY_QUERY_KEY = ['referrals', 'commission', 'summary
 export const DOCTOR_LEDGER_QUERY_KEY = (doctorId?: string) =>
   ['referrals', 'commission', 'doctor', doctorId] as const;
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMPTY_COMMISSION_SUMMARY: LabCommissionSummary = {
+  totalPending: 0,
+  totalSettled: 0,
+  doctorCount: 0,
+  totalReferralsMTD: 0,
+  disbursedMTD: 0,
+};
 
 export function useCommissionSummary() {
   return useQuery<LabCommissionSummary>({
@@ -44,9 +50,9 @@ export function useCommissionSummary() {
             disbursedMTD: totalSettled,
           };
         }
-        return DEMO_COMMISSION_SUMMARY;
+        return EMPTY_COMMISSION_SUMMARY;
       } catch {
-        return DEMO_COMMISSION_SUMMARY;
+        return EMPTY_COMMISSION_SUMMARY;
       }
     },
     staleTime: 30 * 1000,
@@ -82,11 +88,6 @@ export function useDoctorLedger(doctorId?: string) {
     queryFn: async () => {
       if (!doctorId) return [];
 
-      // If mock fixture or not a database UUID, directly serve seed entries without network overhead
-      if (!UUID_REGEX.test(doctorId) || doctorId.startsWith('doc-')) {
-        return DEMO_LEDGER_ENTRIES[doctorId] || [];
-      }
-
       try {
         const response = await api.get<BackendLedgerResponse | CommissionLedgerEntry[]>(
           `/referrals/commission/doctor/${doctorId}`,
@@ -108,7 +109,6 @@ export function useDoctorLedger(doctorId?: string) {
             if (e.notes) {
               const panelMatch = e.notes.match(/\((.*?)\)/);
               if (panelMatch) parsedPanelName = panelMatch[1];
-              if (e.notes.includes('R-20260924-0001')) parsedPatientName = 'Rajesh Kumar';
             }
 
             return {
@@ -127,9 +127,9 @@ export function useDoctorLedger(doctorId?: string) {
           });
         }
 
-        return DEMO_LEDGER_ENTRIES[doctorId] || [];
+        return [];
       } catch {
-        return DEMO_LEDGER_ENTRIES[doctorId] || [];
+        return [];
       }
     },
     staleTime: 15 * 1000,

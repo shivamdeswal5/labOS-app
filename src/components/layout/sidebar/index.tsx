@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useRBAC } from '@/features/auth/hooks/use-rbac';
 import { SidebarStationInfo } from './_components/sidebar-station-info';
 import { SidebarFooter } from './_components/sidebar-footer';
+import { PathiqLogo } from '@/components/ui/brand';
 
 export interface NavItem {
   label: string;
@@ -96,31 +97,27 @@ export function Sidebar({ collapsed, onToggleCollapse, className }: SidebarProps
           {collapsed ? (
             <Link
               href="/"
-              className="flex items-center justify-center w-full group"
-              title="LabOS Home"
+              className="flex items-center justify-center w-full group py-1.5"
+              title="Pathiq Home"
             >
-              <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs tracking-wider shadow-xs group-hover:opacity-90 transition-opacity">
-                LO
-              </div>
+              <PathiqLogo
+                variant="icon"
+                size="md"
+                className="group-hover:scale-105 transition-transform"
+              />
             </Link>
           ) : (
             <>
               <Link
                 href="/"
-                className="flex items-center gap-2 overflow-hidden group"
-                title="LabOS Home"
+                className="flex items-center gap-2 overflow-hidden group py-1 pl-1"
+                title="Pathiq Home"
               >
-                <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 tracking-wider group-hover:opacity-90 transition-opacity">
-                  LO
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-sm tracking-tight text-foreground">
-                    LabOS
-                  </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-                    {process.env.NEXT_PUBLIC_APP_VERSION || 'v1.0'}
-                  </span>
-                </div>
+                <PathiqLogo
+                  variant="icon"
+                  size="md"
+                  className="shrink-0 group-hover:scale-105 transition-transform"
+                />
               </Link>
 
               <button

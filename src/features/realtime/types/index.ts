@@ -7,6 +7,7 @@ export enum RealtimeChannelEnum {
   COLLECTION_STATUS_UPDATED = 'collection:status_updated',
   ALERT_CRITICAL_VALUE = 'alert:critical_value',
   BILLING_PAYMENT_RECORDED = 'billing:payment_recorded',
+  SUBSCRIPTION_ACTIVATED = 'subscription:activated',
 }
 
 export type RealtimeConnectionStatus =

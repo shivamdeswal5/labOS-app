@@ -7,6 +7,7 @@ import { MobileNav } from '../mobile-nav';
 import { CommandPalette } from '../command-palette';
 import { LiveActivityDrawer } from '@/components/shared/live-activity-drawer';
 import { useRealtime } from '@/providers/realtime-provider';
+import { GracePeriodBanner } from '@/features/subscription';
 import { cn } from '@/lib/utils';
 
 export type AppShellVariant = 'contained' | 'full-bleed' | 'workspace';
@@ -90,6 +91,9 @@ export function AppShell({ children, variant = 'contained', className }: AppShel
           'pl-0',
         )}
       >
+        {/* Grace Period & Expiration Warning Banner */}
+        <GracePeriodBanner />
+
         {variant === 'contained' && (
           <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
             {children}

@@ -15,6 +15,7 @@ const TABS: { id: SettingsTabId; label: string }[] = [
   { id: 'signatures', label: 'Pathologist Signatures & Credentials' },
   { id: 'team', label: 'Team & Access Roles' },
   { id: 'analyzers', label: 'API & Analyzer Interfacing' },
+  { id: 'billing', label: 'Subscription & Platform Billing' },
 ];
 
 export function SettingsTabNav({ activeTab, onSelectTab }: SettingsTabNavProps) {
