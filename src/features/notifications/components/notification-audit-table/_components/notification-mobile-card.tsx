@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Clock, Phone, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';

@@ -1,11 +1,14 @@
 'use client';
 
-import * as React from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FilePlus2, CheckCircle2, AlertCircle, FileEdit, UserPlus, ClipboardList } from 'lucide-react';
 import { AppShell } from '@/components/layout/app-shell';
 import { PageHeader } from '@/components/shared';
 import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { newReportSchema, type NewReportSchema } from '@/features/reports/schemas/new-report.schema';
 import { PatientIntakeSection, type PatientFormState } from '@/features/reports/components/patient-intake-section';
 import { PanelSelectorSection } from '@/features/reports/components/panel-selector-section';
 import { OrderSummaryBar, type PaymentMode, type ActivePaymentMethod } from '@/features/reports/components/order-summary-bar';
@@ -46,10 +49,10 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
   const createReportMutation = useCreateReport();
   const isLocked = subscription?.status === 'LOCKED';
 
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = React.useState<boolean>(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState<boolean>(false);
 
   // Pure clinical intake state — pre-populate if existing patient was passed via URL
-  const [formState, setFormState] = React.useState<PatientFormState>(() => ({
+  const [formState, setFormState] = useState<PatientFormState>(() => ({
     existingPatientId: preselectedPatient?.id,
     patientNumber: preselectedPatient?.patientNumber,
     name: preselectedPatient?.name || '',
@@ -62,25 +65,44 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     remarks: '',
   }));
 
-  const [selectedPanelIds, setSelectedPanelIds] = React.useState<string[]>([]);
-  const [discount, setDiscount] = React.useState<number>(0);
-  const [paymentMode, setPaymentMode] = React.useState<PaymentMode>('PAID');
-  const [paymentMethod, setPaymentMethod] = React.useState<ActivePaymentMethod>('UPI');
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = React.useState<{
-    name?: string;
-    age?: string;
-    panels?: string;
-  }>({});
-  const [createdReport, setCreatedReport] = React.useState<CreatedReportDetails | null>(null);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = React.useState<boolean>(false);
+  const {
+    handleSubmit: handleRHFSubmit,
+    setValue: setRHFValue,
+    reset: resetRHF,
+    formState: { errors: rhfErrors },
+  } = useForm<NewReportSchema>({
+    resolver: zodResolver(newReportSchema),
+    defaultValues: {
+      name: preselectedPatient?.name || '',
+      age: preselectedPatient?.age ? preselectedPatient.age.replace(/[^0-9]/g, '') : '',
+      ageUnit: 'YRS',
+      sex: (preselectedPatient?.sex as 'MALE' | 'FEMALE' | 'OTHER') || 'MALE',
+      phone: preselectedPatient?.phone ? preselectedPatient.phone.replace(/[^0-9]/g, '').slice(-10) : '',
+      refByDoctorId: '',
+      remarks: '',
+    },
+  });
+
+  const [panelError, setPanelError] = useState<string | undefined>(undefined);
+  const [selectedPanelIds, setSelectedPanelIds] = useState<string[]>([]);
+  const [discount, setDiscount] = useState<number>(0);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>('PAID');
+  const [paymentMethod, setPaymentMethod] = useState<ActivePaymentMethod>('UPI');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [createdReport, setCreatedReport] = useState<CreatedReportDetails | null>(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
 
   // Form updates
   const handleUpdateForm = (updates: Partial<PatientFormState>) => {
     setFormState((prev) => ({ ...prev, ...updates }));
     setErrorMessage(null);
-    if (updates.name) setValidationErrors((prev) => ({ ...prev, name: undefined }));
-    if (updates.age) setValidationErrors((prev) => ({ ...prev, age: undefined }));
+    if (updates.name !== undefined) setRHFValue('name', updates.name, { shouldValidate: true });
+    if (updates.age !== undefined) setRHFValue('age', updates.age, { shouldValidate: true });
+    if (updates.ageUnit !== undefined) setRHFValue('ageUnit', updates.ageUnit);
+    if (updates.sex !== undefined) setRHFValue('sex', updates.sex);
+    if (updates.phone !== undefined) setRHFValue('phone', updates.phone, { shouldValidate: true });
+    if (updates.refByDoctorId !== undefined) setRHFValue('refByDoctorId', updates.refByDoctorId);
+    if (updates.remarks !== undefined) setRHFValue('remarks', updates.remarks);
   };
 
   // Toggle panels
@@ -88,11 +110,11 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     setSelectedPanelIds((prev) =>
       prev.includes(panelId) ? prev.filter((id) => id !== panelId) : [...prev, panelId],
     );
-    setValidationErrors((prev) => ({ ...prev, panels: undefined }));
+    setPanelError(undefined);
   };
 
   // Calculate total price
-  const totalPrice = React.useMemo(() => {
+  const totalPrice = useMemo(() => {
     if (!panels) return 0;
     return panels
       .filter((p) => selectedPanelIds.includes(p.id))
@@ -106,7 +128,7 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     selectedPanelIds.length > 0;
 
   // Submit handler — IDs and Invoices are assigned atomically by backend in PostgreSQL
-  const handleSubmit = async () => {
+  const onValidSubmit = async (values: NewReportSchema) => {
     if (isLocked) {
       setIsUpgradeModalOpen(true);
       return;
@@ -114,34 +136,15 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     if (createReportMutation.isPending || createdReport) return;
     setErrorMessage(null);
 
-    // Explicit field validation
-    const errors: { name?: string; age?: string; panels?: string } = {};
-    if (!formState.name || formState.name.trim().length < 2) {
-      errors.name = 'Patient name is required (minimum 2 characters)';
-    }
-    if (!formState.age || formState.age.trim().length === 0) {
-      errors.age = 'Patient age is required';
-    }
     if (selectedPanelIds.length === 0) {
-      errors.panels = 'Please select at least one test panel to register';
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      if (errors.name) {
-        document.getElementById('patient-name')?.focus();
-      } else if (errors.age) {
-        document.getElementById('patient-age')?.focus();
-      } else if (errors.panels) {
-        document.getElementById('panel-selector-section')?.scrollIntoView({ behavior: 'smooth' });
-      }
+      setPanelError('Please select at least one test panel to register');
+      document.getElementById('panel-selector-section')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
-
-    setValidationErrors({});
+    setPanelError(undefined);
 
     try {
-      const formattedAge = `${formState.age} ${formState.ageUnit}`;
+      const formattedAge = `${values.age} ${values.ageUnit}`;
       const netTotal = Math.max(0, totalPrice - discount);
 
       const created = await createReportMutation.mutateAsync({
@@ -194,6 +197,21 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     }
   };
 
+  const onInvalidSubmit = () => {
+    if (selectedPanelIds.length === 0) {
+      setPanelError('Please select at least one test panel to register');
+    }
+    if (rhfErrors.name) {
+      document.getElementById('patient-name')?.focus();
+    } else if (rhfErrors.age) {
+      document.getElementById('patient-age')?.focus();
+    } else if (selectedPanelIds.length === 0) {
+      document.getElementById('panel-selector-section')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleSubmit = handleRHFSubmit(onValidSubmit, onInvalidSubmit);
+
   /** Reset form for the next patient after a successful registration. */
   const handleRegisterNext = () => {
     setCreatedReport(null);
@@ -203,6 +221,16 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
     setPaymentMode('PAID');
     setPaymentMethod('UPI');
     setErrorMessage(null);
+    setPanelError(undefined);
+    resetRHF({
+      name: '',
+      age: '',
+      ageUnit: 'YRS',
+      sex: 'MALE',
+      phone: '',
+      refByDoctorId: '',
+      remarks: '',
+    });
     setFormState({
       existingPatientId: undefined,
       patientNumber: undefined,
@@ -215,6 +243,13 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
       reportNumber: undefined,
       remarks: '',
     });
+  };
+
+  const intakeErrors = {
+    name: rhfErrors.name?.message,
+    age: rhfErrors.age?.message,
+    phone: rhfErrors.phone?.message,
+    panels: panelError,
   };
 
   return (
@@ -296,14 +331,14 @@ function NewReportForm({ preselectedPatient }: NewReportFormProps) {
           <PatientIntakeSection
             formState={formState}
             onChange={handleUpdateForm}
-            errors={validationErrors}
+            errors={intakeErrors}
           />
 
           {/* Section 02: Investigation Panels */}
           <PanelSelectorSection
             selectedPanelIds={selectedPanelIds}
             onTogglePanel={handleTogglePanel}
-            error={validationErrors.panels}
+            error={panelError}
           />
 
           {/* Sticky Summary & Submit Bar */}
@@ -369,7 +404,7 @@ function NewReportContent() {
 
 export default function NewReportPage() {
   return (
-    <React.Suspense
+    <Suspense
       fallback={
         <AppShell variant="full-bleed">
           <div className="p-8 text-center text-xs text-muted-foreground">
@@ -379,6 +414,6 @@ export default function NewReportPage() {
       }
     >
       <NewReportContent />
-    </React.Suspense>
+    </Suspense>
   );
 }

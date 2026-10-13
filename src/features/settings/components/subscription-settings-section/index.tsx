@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   CreditCard,
   Sparkles,
@@ -19,16 +19,16 @@ import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/lib/formatters';
 
 export function SubscriptionSettingsSection() {
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = React.useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const { data: subscription, isLoading: isSubLoading } = useTenantSubscriptionQuery();
 
-  const formattedPeriodEnd = React.useMemo(() => {
+  const formattedPeriodEnd = useMemo(() => {
     if (!subscription?.currentPeriodEnd && !subscription?.trialEnd) return null;
     const targetDate = subscription.currentPeriodEnd || subscription.trialEnd;
     return formatDateTime(targetDate);
   }, [subscription]);
 
-  const statusBadge = React.useMemo(() => {
+  const statusBadge = useMemo(() => {
     if (!subscription) return null;
     switch (subscription.status) {
       case 'ACTIVE':
@@ -44,7 +44,7 @@ export function SubscriptionSettingsSection() {
     }
   }, [subscription]);
 
-  const entitlementsList = React.useMemo(() => {
+  const entitlementsList = useMemo(() => {
     if (!subscription?.effectiveEntitlements) return [];
     const e = subscription.effectiveEntitlements;
     const list: string[] = [];

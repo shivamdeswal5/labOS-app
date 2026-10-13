@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import {
   Search,
   Clock,
@@ -38,7 +38,7 @@ export function CollectionsListTable({
   onFastingOnlyChange,
 }: CollectionsListTableProps) {
   // Counts by status
-  const counts = React.useMemo(() => {
+  const counts = useMemo(() => {
     return {
       ALL: collections.length,
       REQUESTED: collections.filter((c) => c.status === 'REQUESTED').length,
@@ -50,7 +50,7 @@ export function CollectionsListTable({
   }, [collections]);
 
   // Filtered collections
-  const filtered = React.useMemo(() => {
+  const filtered = useMemo(() => {
     return collections.filter((item) => {
       // Status filter
       if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;

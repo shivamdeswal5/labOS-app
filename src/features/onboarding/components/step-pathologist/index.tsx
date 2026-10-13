@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stethoscope, ChevronRight, ChevronLeft, Upload, Loader2, X } from 'lucide-react';
@@ -31,12 +31,12 @@ interface StepPathologistProps {
 export function StepPathologist({ initialData, onNext, onBack }: StepPathologistProps) {
   const updateProfile = useUpdateProfile();
   const uploadSignature = useUploadSignature();
-  const [signatureFile, setSignatureFile] = React.useState<File | null>(null);
-  const [signaturePreview, setSignaturePreview] = React.useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = React.useState<string | undefined>(
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | undefined>(
     initialData.signatureUrl,
   );
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -51,7 +51,7 @@ export function StepPathologist({ initialData, onNext, onBack }: StepPathologist
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setSignatureFile(file);

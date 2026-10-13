@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { CollectionsHeader } from '@/features/collections/components/collections-header';
 import { CollectionsKpiRibbon } from '@/features/collections/components/collections-kpi-ribbon';
@@ -26,17 +26,17 @@ import type {
 } from '@/features/collections/types';
 
 export default function CollectionsPage() {
-  const [statusFilter, setStatusFilter] = React.useState<CollectionStatus | 'ALL'>('ALL');
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [fastingOnly, setFastingOnly] = React.useState(false);
-  const [selectedCollectionId, setSelectedCollectionId] = React.useState<string | null>(null);
-  const [activeMobileView, setActiveMobileView] = React.useState<'list' | 'console'>('list');
+  const [statusFilter, setStatusFilter] = useState<CollectionStatus | 'ALL'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fastingOnly, setFastingOnly] = useState(false);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [activeMobileView, setActiveMobileView] = useState<'list' | 'console'>('list');
 
   // Modal dialog states
-  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = React.useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false);
-  const [isCheckinModalOpen, setIsCheckinModalOpen] = React.useState(false);
-  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Queries
   const { data: collections = [], refetch, isRefetching } = useCollections({
@@ -65,7 +65,7 @@ export default function CollectionsPage() {
   const cancelMutation = useCancelCollection();
 
   // Active selected collection
-  const selectedCollection = React.useMemo(() => {
+  const selectedCollection = useMemo(() => {
     if (!collections.length) return null;
     return (
       collections.find((c) => c.id === selectedCollectionId) ||

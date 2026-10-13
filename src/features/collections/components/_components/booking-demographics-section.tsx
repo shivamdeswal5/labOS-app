@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 interface BookingDemographicsSectionProps {
   patientName: string;
@@ -13,6 +13,12 @@ interface BookingDemographicsSectionProps {
   onPatientSexChange: (val: 'MALE' | 'FEMALE' | 'OTHER') => void;
   address: string;
   onAddressChange: (val: string) => void;
+  errors?: {
+    patientName?: string;
+    patientPhone?: string;
+    patientAge?: string;
+    address?: string;
+  };
 }
 
 export function BookingDemographicsSection({
@@ -26,6 +32,7 @@ export function BookingDemographicsSection({
   onPatientSexChange,
   address,
   onAddressChange,
+  errors,
 }: BookingDemographicsSectionProps) {
   return (
     <>
@@ -36,27 +43,41 @@ export function BookingDemographicsSection({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-foreground font-medium mb-1">Patient Full Name *</label>
+            <label className="block text-foreground font-medium mb-1">
+              Patient Full Name <span className="text-destructive">*</span>
+            </label>
             <input
               type="text"
-              required
               value={patientName}
               onChange={(e) => onPatientNameChange(e.target.value)}
               placeholder="e.g. Suman K. Sharma"
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className={cn(
+                'w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary',
+                errors?.patientName && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors?.patientName && (
+              <p className="text-[11px] text-destructive mt-1">{errors.patientName}</p>
+            )}
           </div>
 
           <div>
-            <label className="block text-foreground font-medium mb-1">Phone Number (+91) *</label>
+            <label className="block text-foreground font-medium mb-1">
+              Phone Number (+91) <span className="text-destructive">*</span>
+            </label>
             <input
               type="tel"
-              required
               value={patientPhone}
               onChange={(e) => onPatientPhoneChange(e.target.value)}
-              placeholder="e.g. +91 98450 12345"
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+              placeholder="e.g. 9845012345"
+              className={cn(
+                'w-full px-3 py-2 bg-background border border-border rounded-md text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary',
+                errors?.patientPhone && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors?.patientPhone && (
+              <p className="text-[11px] text-destructive mt-1">{errors.patientPhone}</p>
+            )}
           </div>
         </div>
 
@@ -68,8 +89,14 @@ export function BookingDemographicsSection({
               value={patientAge}
               onChange={(e) => onPatientAgeChange(e.target.value)}
               placeholder="e.g. 48"
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className={cn(
+                'w-full px-3 py-2 bg-background border border-border rounded-md text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary',
+                errors?.patientAge && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors?.patientAge && (
+              <p className="text-[11px] text-destructive mt-1">{errors.patientAge}</p>
+            )}
           </div>
 
           <div>
@@ -93,15 +120,22 @@ export function BookingDemographicsSection({
         </h3>
 
         <div>
-          <label className="block text-foreground font-medium mb-1">Complete Address *</label>
+          <label className="block text-foreground font-medium mb-1">
+            Complete Address <span className="text-destructive">*</span>
+          </label>
           <textarea
-            required
             rows={2}
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
             placeholder="House/Flat #, Street, Locality, Landmark (e.g. Indiranagar 100ft Road)..."
-            className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+            className={cn(
+              'w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary',
+              errors?.address && 'border-destructive focus:ring-destructive'
+            )}
           />
+          {errors?.address && (
+            <p className="text-[11px] text-destructive mt-1">{errors.address}</p>
+          )}
         </div>
       </div>
     </>

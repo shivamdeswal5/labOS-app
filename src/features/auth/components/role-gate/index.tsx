@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import type { ReactNode } from 'react';
 import { useRBAC } from '../../hooks/use-rbac';
 import type { AppRole, Permission } from '../../types/rbac.types';
 import { AccessDeniedView } from '../access-denied';
@@ -8,9 +8,9 @@ import { AccessDeniedView } from '../access-denied';
 interface RoleGateProps {
   allowedRoles?: AppRole[];
   permission?: Permission;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
   showDeniedView?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /**

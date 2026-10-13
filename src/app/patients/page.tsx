@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -22,10 +22,10 @@ import { PatientHistoryTimeline } from '@/features/patients/components/patient-h
 import type { Patient } from '@/features/reports/types';
 
 export default function PatientsPage() {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [filterMode, setFilterMode] = React.useState<'ALL' | 'RECENT' | 'ABNORMAL'>('ALL');
-  const [selectedPatientId, setSelectedPatientId] = React.useState<string | null>(null);
-  const [mobileTab, setMobileTab] = React.useState<'LIST' | 'DETAIL'>('LIST');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState<'ALL' | 'RECENT' | 'ABNORMAL'>('ALL');
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'LIST' | 'DETAIL'>('LIST');
 
   // Load patients
   const {
@@ -37,7 +37,7 @@ export default function PatientsPage() {
 
   // Active patient derived directly (defaults to first patient without setState-in-effect)
   const effectivePatientId = selectedPatientId ?? patients[0]?.id ?? null;
-  const selectedPatient = React.useMemo(() => {
+  const selectedPatient = useMemo(() => {
     return patients.find((p) => p.id === effectivePatientId) || patients[0] || null;
   }, [patients, effectivePatientId]);
 

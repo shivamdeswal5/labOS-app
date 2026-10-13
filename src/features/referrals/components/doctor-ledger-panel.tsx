@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   FileText,
   CheckCircle2,
@@ -23,17 +23,17 @@ export function DoctorLedgerPanel({
   entries,
   onOpenSettleModal,
 }: DoctorLedgerPanelProps) {
-  const pendingEntries = React.useMemo(
+  const pendingEntries = useMemo(
     () => entries.filter((e) => e.status === 'PENDING'),
     [entries],
   );
 
-  const pendingAmount = React.useMemo(
+  const pendingAmount = useMemo(
     () => pendingEntries.reduce((sum, e) => sum + e.amount, 0) || doctor.pendingAmount,
     [pendingEntries, doctor.pendingAmount],
   );
 
-  const [isStatementModalOpen, setIsStatementModalOpen] = React.useState(false);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col">

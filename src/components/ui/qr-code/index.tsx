@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 
 interface ReportQrCodeProps {
@@ -10,9 +10,9 @@ interface ReportQrCodeProps {
 }
 
 export function ReportQrCode({ value, size = 64, className = '' }: ReportQrCodeProps) {
-  const [svgContent, setSvgContent] = React.useState<string>('');
+  const [svgContent, setSvgContent] = useState<string>('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!value) return;
 
     QRCode.toString(

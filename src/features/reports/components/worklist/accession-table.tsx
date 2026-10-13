@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   FileEdit,
@@ -26,7 +26,7 @@ interface AccessionTableProps {
 export function AccessionTable({ reports, onOpenWhatsApp }: AccessionTableProps) {
   const { data: labProfile } = useLabProfile();
   const labName = labProfile?.name || 'Diagnostic Laboratory';
-  const [downloadingId, setDownloadingId] = React.useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const handleDownloadPdf = async (report: DetailedReport) => {
     setDownloadingId(report.id);

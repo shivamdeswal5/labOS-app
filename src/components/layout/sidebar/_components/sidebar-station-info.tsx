@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { useLabProfile } from '@/features/settings/hooks/use-lab-profile';
 
 interface SidebarStationInfoProps {

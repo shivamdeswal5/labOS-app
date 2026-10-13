@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { TrendingUp, TrendingDown, Minus, ChevronDown } from 'lucide-react';
 import type { DetailedReport, PanelParameter } from '@/features/reports/types';
 
@@ -182,20 +182,20 @@ function computeTrajectory(points: BiomarkerDataPoint[]): {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function BiomarkerTrendChart({ reports }: BiomarkerTrendChartProps) {
-  const seriesMap = React.useMemo(() => extractBiomarkerSeries(reports), [reports]);
-  const seriesNames = React.useMemo(() => Array.from(seriesMap.keys()), [seriesMap]);
+  const seriesMap = useMemo(() => extractBiomarkerSeries(reports), [reports]);
+  const seriesNames = useMemo(() => Array.from(seriesMap.keys()), [seriesMap]);
 
-  const defaultName = React.useMemo(
+  const defaultName = useMemo(
     () => selectPrimaryBiomarker(seriesMap) ?? seriesNames[0] ?? null,
     [seriesMap, seriesNames],
   );
 
-  const [selectedName, setSelectedName] = React.useState<string | null>(null);
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);

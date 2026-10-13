@@ -67,11 +67,31 @@ export function useUpdateLab() {
       }
 
       // 2. User has no lab — create initial lab and owner profile via POST /labs
+      let planSlug = 'STARTER';
+      let billingCycle = 'MONTHLY';
       try {
-        return await api.post('/labs', {
+        const storedPlan = sessionStorage.getItem('pathiq_selected_plan');
+        const storedBilling = sessionStorage.getItem('pathiq_selected_billing');
+        if (storedPlan) planSlug = storedPlan;
+        if (storedBilling) billingCycle = storedBilling;
+      } catch {
+        // storage unavailable
+      }
+
+      try {
+        const created = await api.post('/labs', {
           ...payload,
           ownerFullName,
+          planSlug,
+          billingCycle,
         });
+        try {
+          sessionStorage.removeItem('pathiq_selected_plan');
+          sessionStorage.removeItem('pathiq_selected_billing');
+        } catch {
+          // ignore
+        }
+        return created;
       } catch (err: unknown) {
         // In case of conflict (e.g., lab was already created), update instead
         if (err instanceof ApiError && (err.statusCode === 409 || err.statusCode === 400)) {
@@ -82,6 +102,7 @@ export function useUpdateLab() {
     },
   });
 }
+
 
 export function useUpdateProfile() {
   return useMutation({

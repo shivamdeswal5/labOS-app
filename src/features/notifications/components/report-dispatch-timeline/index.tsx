@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import {
   MessageSquare,
   ChevronDown,
@@ -90,7 +90,7 @@ const STATUS_COLORS: Record<NotificationStatus, string> = {
 
 function TimelineEvent({ log, isLast }: { log: NotificationLog; isLast: boolean }) {
   const resend = useResendNotification();
-  const [resendDone, setResendDone] = React.useState(false);
+  const [resendDone, setResendDone] = useState(false);
 
   const handleResend = async () => {
     await resend.mutateAsync({ id: log.id });
@@ -183,12 +183,12 @@ interface ReportDispatchTimelineProps {
 }
 
 export function ReportDispatchTimeline({ reportId, defaultOpen = false }: ReportDispatchTimelineProps) {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  const [logs, setLogs] = React.useState<NotificationLog[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [hasFetched, setHasFetched] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [logs, setLogs] = useState<NotificationLog[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  const loadLogs = React.useCallback(async () => {
+  const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await notificationsService.list({ reportId, limit: 50 });
@@ -211,7 +211,7 @@ export function ReportDispatchTimeline({ reportId, defaultOpen = false }: Report
     if (next && !hasFetched) void loadLogs();
   };
 
-  const handleRefresh = (e: React.MouseEvent) => {
+  const handleRefresh = (e: MouseEvent) => {
     e.stopPropagation();
     setHasFetched(false);
     void loadLogs();
@@ -220,8 +220,8 @@ export function ReportDispatchTimeline({ reportId, defaultOpen = false }: Report
   // Eagerly fetch when defaultOpen=true on mount, without triggering
   // "setState synchronously in effect" lint rule — the async boundary ensures
   // state updates happen asynchronously after the effect body returns.
-  const didMountFetch = React.useRef(false);
-  React.useEffect(() => {
+  const didMountFetch = useRef(false);
+  useEffect(() => {
     if (defaultOpen && !didMountFetch.current) {
       didMountFetch.current = true;
       void loadLogs();
@@ -267,7 +267,7 @@ export function ReportDispatchTimeline({ reportId, defaultOpen = false }: Report
               role="button"
               tabIndex={0}
               onClick={handleRefresh}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleRefresh(e as unknown as React.MouseEvent); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleRefresh(e as unknown as MouseEvent); }}
               className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
               title="Refresh"
             >

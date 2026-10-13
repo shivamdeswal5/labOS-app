@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import {
   Search,
@@ -35,7 +35,7 @@ export function OutsourcedTable({
   onOpenNewSendOutModal,
 }: OutsourcedTableProps) {
   // Client-side search filtering across multiple fields
-  const filteredTests = React.useMemo(() => {
+  const filteredTests = useMemo(() => {
     return tests.filter((t) => {
       const matchesStatus = statusFilter === 'ALL' || t.status === statusFilter;
       if (!matchesStatus) return false;

@@ -1,7 +1,11 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, FlaskConical } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { createPanelSchema, type CreatePanelSchema } from '../schemas/create-panel.schema';
 import type { CreatePanelDto } from '../types';
 
 interface CreatePanelModalProps {
@@ -25,36 +29,59 @@ export function CreatePanelModal({
   onCreate,
   isCreating = false,
 }: CreatePanelModalProps) {
-  const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
-  const [category, setCategory] = React.useState('Clinical Pathology');
-  const [price, setPrice] = React.useState('450');
-  const [specimenType, setSpecimenType] = React.useState('Venous Blood / EDTA 3 mL');
-  const [tatMinutes, setTatMinutes] = React.useState('120');
-  const [initialSection, setInitialSection] = React.useState('I. Primary Diagnostic Parameters');
-  const [initialParameter, setInitialParameter] = React.useState('Key Biomarker Level');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreatePanelSchema>({
+    resolver: zodResolver(createPanelSchema),
+    defaultValues: {
+      name: '',
+      code: '',
+      category: 'Clinical Pathology',
+      price: 450,
+      specimenType: 'Venous Blood / EDTA 3 mL',
+      tatMinutes: 120,
+      initialSection: 'I. Primary Diagnostic Parameters',
+      initialParameter: 'Key Biomarker Level',
+    },
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        name: '',
+        code: '',
+        category: 'Clinical Pathology',
+        price: 450,
+        specimenType: 'Venous Blood / EDTA 3 mL',
+        tatMinutes: 120,
+        initialSection: 'I. Primary Diagnostic Parameters',
+        initialParameter: 'Key Biomarker Level',
+      });
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !code.trim()) return;
-
+  const onSubmitHandler = handleSubmit((values) => {
+    const uppercaseCode = values.code.trim().toUpperCase();
     onCreate({
-      name: name.trim(),
-      code: code.trim().toUpperCase(),
-      category,
-      price: Number(price) || 0,
-      specimenType: specimenType.trim(),
-      tatMinutes: Number(tatMinutes) || 120,
+      name: values.name.trim(),
+      code: uppercaseCode,
+      category: values.category,
+      price: Number(values.price) || 0,
+      specimenType: values.specimenType.trim(),
+      tatMinutes: Number(values.tatMinutes) || 120,
       sections: [
         {
-          name: initialSection.trim() || 'I. Primary Investigation Group',
+          name: values.initialSection.trim() || 'I. Primary Investigation Group',
           sortOrder: 1,
           parameters: [
             {
-              name: initialParameter.trim() || 'Primary Parameter',
-              code: `${code.trim().toUpperCase()}-01`,
+              name: values.initialParameter.trim() || 'Primary Parameter',
+              code: `${uppercaseCode}-01`,
               unit: 'mg/dL',
               inputType: 'NUMBER',
               referenceText: '0 - 100',
@@ -65,8 +92,9 @@ export function CreatePanelModal({
       ],
     });
 
+    reset();
     onClose();
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-150">
@@ -96,43 +124,50 @@ export function CreatePanelModal({
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={onSubmitHandler} noValidate className="p-6 space-y-4 text-xs">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Panel Title *
+              Panel Title <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              required
               placeholder="e.g. Glycated Hemoglobin (HbA1c)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+              {...register('name')}
+              className={cn(
+                'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                errors.name && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors.name && (
+              <p className="text-[11px] text-destructive mt-1">{errors.name.message}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Shortcode *
+                Shortcode <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
-                required
                 placeholder="e.g. BIO-09"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors uppercase"
+                {...register('code')}
+                className={cn(
+                  'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors uppercase',
+                  errors.code && 'border-destructive focus:ring-destructive'
+                )}
               />
+              {errors.code && (
+                <p className="text-[11px] text-destructive mt-1">{errors.code.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Department / Category *
+                Department / Category <span className="text-destructive">*</span>
               </label>
               <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                {...register('category')}
                 className="w-full h-10 px-3 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
               >
                 {CATEGORIES.map((cat) => (
@@ -141,50 +176,67 @@ export function CreatePanelModal({
                   </option>
                 ))}
               </select>
+              {errors.category && (
+                <p className="text-[11px] text-destructive mt-1">{errors.category.message}</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Standard Fee (₹) *
+                Standard Fee (₹) <span className="text-destructive">*</span>
               </label>
               <input
                 type="number"
-                required
                 min="0"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                step="any"
+                {...register('price')}
+                className={cn(
+                  'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                  errors.price && 'border-destructive focus:ring-destructive'
+                )}
               />
+              {errors.price && (
+                <p className="text-[11px] text-destructive mt-1">{errors.price.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Turnaround Time (Minutes) *
+                Turnaround Time (Minutes) <span className="text-destructive">*</span>
               </label>
               <input
                 type="number"
-                required
                 min="1"
-                value={tatMinutes}
-                onChange={(e) => setTatMinutes(e.target.value)}
-                className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                {...register('tatMinutes')}
+                className={cn(
+                  'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                  errors.tatMinutes && 'border-destructive focus:ring-destructive'
+                )}
               />
+              {errors.tatMinutes && (
+                <p className="text-[11px] text-destructive mt-1">{errors.tatMinutes.message}</p>
+              )}
             </div>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Specimen Tube &amp; Quantity
+              Specimen Tube &amp; Quantity <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
               placeholder="e.g. Venous Whole Blood / EDTA 2 mL"
-              value={specimenType}
-              onChange={(e) => setSpecimenType(e.target.value)}
-              className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+              {...register('specimenType')}
+              className={cn(
+                'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                errors.specimenType && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors.specimenType && (
+              <p className="text-[11px] text-destructive mt-1">{errors.specimenType.message}</p>
+            )}
           </div>
 
           <div className="pt-2 border-t border-border space-y-3">
@@ -192,20 +244,34 @@ export function CreatePanelModal({
               Default Section &amp; Parameter Seed
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="text"
-                placeholder="Initial Section Group"
-                value={initialSection}
-                onChange={(e) => setInitialSection(e.target.value)}
-                className="h-9 px-3 bg-muted/30 border border-input rounded-md text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <input
-                type="text"
-                placeholder="Initial Parameter Name"
-                value={initialParameter}
-                onChange={(e) => setInitialParameter(e.target.value)}
-                className="h-9 px-3 bg-muted/30 border border-input rounded-md text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
+              <div>
+                <input
+                  type="text"
+                  placeholder="Initial Section Group"
+                  {...register('initialSection')}
+                  className={cn(
+                    'w-full h-9 px-3 bg-muted/30 border border-input rounded-md text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring',
+                    errors.initialSection && 'border-destructive'
+                  )}
+                />
+                {errors.initialSection && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.initialSection.message}</p>
+                )}
+              </div>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Initial Parameter Name"
+                  {...register('initialParameter')}
+                  className={cn(
+                    'w-full h-9 px-3 bg-muted/30 border border-input rounded-md text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring',
+                    errors.initialParameter && 'border-destructive'
+                  )}
+                />
+                {errors.initialParameter && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.initialParameter.message}</p>
+                )}
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { UserPlus, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { StaffMember, InviteStaffDto } from '../types';
@@ -27,7 +27,7 @@ export function TeamRolesSection({
   onInviteMember,
   isInviting = false,
 }: TeamRolesSectionProps) {
-  const [isInviteModalOpen, setIsInviteModalOpen] = React.useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   const handleExportCsv = () => {
     const csvHeader = 'Full Name,Email,Role,Qualification,Council Registration,Sign-off Scope,Last Active\n';

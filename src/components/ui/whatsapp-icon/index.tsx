@@ -1,7 +1,7 @@
-import * as React from 'react';
+import type { SVGProps } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface WhatsAppIconProps extends React.SVGProps<SVGSVGElement> {
+export interface WhatsAppIconProps extends SVGProps<SVGSVGElement> {
   className?: string;
   size?: number;
 }

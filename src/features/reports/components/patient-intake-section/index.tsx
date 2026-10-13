@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   BadgeCheck,
   Barcode,
@@ -47,13 +47,13 @@ export function PatientIntakeSection({
   onChange,
   errors,
 }: PatientIntakeSectionProps) {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [showSearchResults, setShowSearchResults] = React.useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const { data: searchResults, isLoading: isSearching } = usePatientSearch(searchTerm);
   const { data: doctors } = useDoctors();
 
   // Automatic phone-first deduplication: detect returning patients/households when 10 digits are typed
-  const phoneDigits = React.useMemo(() => {
+  const phoneDigits = useMemo(() => {
     const raw = (formState.phone || '').replace(/\D/g, '');
     return raw.length >= 10 ? raw.slice(-10) : '';
   }, [formState.phone]);
@@ -301,9 +301,17 @@ export function PatientIntakeSection({
               value={formState.phone}
               onChange={(e) => onChange({ phone: e.target.value })}
               placeholder="98765 43210"
-              className="w-full h-9 pl-11 pr-3 bg-card border border-border rounded-md text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary"
+              className={cn(
+                'w-full h-9 pl-11 pr-3 bg-card border border-border rounded-md text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary',
+                errors?.phone && 'border-destructive ring-1 ring-destructive'
+              )}
             />
           </div>
+          {errors?.phone && (
+            <p className="text-[11px] text-destructive font-medium mt-1 animate-in fade-in-0 duration-150">
+              {errors.phone}
+            </p>
+          )}
 
           {/* Smart Phone-First Deduplication Assistant */}
           {phoneMatches && phoneMatches.length > 0 && !formState.existingPatientId && (

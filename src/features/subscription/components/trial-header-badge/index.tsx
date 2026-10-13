@@ -1,13 +1,13 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Clock, Sparkles, AlertTriangle, Lock } from 'lucide-react';
 import { useTenantSubscriptionQuery } from '../../api/subscription.queries';
 import { PlanUpgradeModal } from '../plan-upgrade-modal';
 
 export function TrialHeaderBadge() {
   const { data: subscription } = useTenantSubscriptionQuery();
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   if (!subscription) {
     return null;

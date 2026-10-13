@@ -1,8 +1,10 @@
 'use client';
 
-import * as React from 'react';
-import { FlaskConical, Check } from 'lucide-react';
+import { Fragment, type ReactNode } from 'react';
+import { FlaskConical, Check, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuthContext } from '@/providers/auth-provider';
+import { useLogout } from '@/features/auth/api/use-auth';
 import type { OnboardingStep } from '../../types';
 
 const STEPS: { step: OnboardingStep; label: string; sublabel: string }[] = [
@@ -14,21 +16,46 @@ const STEPS: { step: OnboardingStep; label: string; sublabel: string }[] = [
 
 interface OnboardingLayoutProps {
   currentStep: OnboardingStep;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function OnboardingLayout({ currentStep, children }: OnboardingLayoutProps) {
+  const { user } = useAuthContext();
+  const logout = useLogout();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Top brand bar */}
-      <header className="h-14 border-b border-border flex items-center px-6 gap-3 bg-card">
-        <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs tracking-wider">
-          LO
+      {/* Top brand & account bar */}
+      <header className="h-14 border-b border-border flex items-center justify-between px-4 sm:px-6 bg-card">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs tracking-wider">
+            LO
+          </div>
+          <span className="font-semibold text-sm text-foreground tracking-tight">LabOS</span>
+          <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+            Setup Wizard
+          </span>
         </div>
-        <span className="font-semibold text-sm text-foreground tracking-tight">LabOS</span>
-        <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-          Setup Wizard
-        </span>
+
+        {/* Authenticated account info & logout escape hatch */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {user?.email && (
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full border border-border max-w-[220px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="truncate">{user.email}</span>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => logout.mutate()}
+            disabled={logout.isPending}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors border border-border/60 min-h-[36px]"
+            title="Sign out of this account"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>{logout.isPending ? 'Signing out...' : 'Sign Out'}</span>
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-start py-6 px-4">
@@ -40,7 +67,7 @@ export function OnboardingLayout({ currentStep, children }: OnboardingLayoutProp
               const isActive = s.step === currentStep;
 
               return (
-                <React.Fragment key={s.step}>
+                <Fragment key={s.step}>
                   {/* Step dot */}
                   <div className="flex flex-col items-center gap-1.5 shrink-0">
                     <div
@@ -83,7 +110,7 @@ export function OnboardingLayout({ currentStep, children }: OnboardingLayoutProp
                       )}
                     />
                   )}
-                </React.Fragment>
+                </Fragment>
               );
             })}
           </div>

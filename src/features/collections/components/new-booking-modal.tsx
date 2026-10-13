@@ -1,8 +1,12 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { newBookingSchema, type NewBookingSchema } from '../schemas/new-booking.schema';
 import type { CreateCollectionDto, Phlebotomist } from '../types';
 import {
   BookingDemographicsSection,
@@ -26,23 +30,45 @@ export function NewBookingModal({
   phlebotomists,
   isSubmitting = false,
 }: NewBookingModalProps) {
-  const [patientName, setPatientName] = React.useState('');
-  const [patientPhone, setPatientPhone] = React.useState('');
-  const [patientAge, setPatientAge] = React.useState('');
-  const [patientSex, setPatientSex] = React.useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
-  const [address, setAddress] = React.useState('');
-  const [preferredDate, setPreferredDate] = React.useState(new Date().toISOString().split('T')[0]);
-  const [timeSlot, setTimeSlot] = React.useState(TIME_SLOTS[1]);
-  const [isFastingRequired, setIsFastingRequired] = React.useState(true);
-  const [selectedTests, setSelectedTests] = React.useState<string[]>([
+  const [selectedTests, setSelectedTests] = useState<string[]>([
     'HbA1c & Fasting Blood Sugar',
     'Lipid Profile Extended',
   ]);
-  const [specialInstructions, setSpecialInstructions] = React.useState('');
-  const [assignedPhlebotomistId, setAssignedPhlebotomistId] = React.useState<string>('');
+  const [assignedPhlebotomistId, setAssignedPhlebotomistId] = useState<string>('');
+
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<NewBookingSchema>({
+    resolver: zodResolver(newBookingSchema),
+    defaultValues: {
+      patientName: '',
+      patientPhone: '',
+      patientAge: '',
+      patientSex: 'MALE',
+      address: '',
+      preferredDate: new Date().toISOString().split('T')[0],
+      timeSlot: TIME_SLOTS[1],
+      isFastingRequired: true,
+      specialInstructions: '',
+    },
+  });
+
+  const patientName = watch('patientName');
+  const patientPhone = watch('patientPhone');
+  const patientAge = watch('patientAge') || '';
+  const patientSex = watch('patientSex');
+  const address = watch('address');
+  const preferredDate = watch('preferredDate');
+  const timeSlot = watch('timeSlot');
+  const isFastingRequired = watch('isFastingRequired');
+  const specialInstructions = watch('specialInstructions') || '';
 
   // Handle Escape key to close modal
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -50,6 +76,27 @@ export function NewBookingModal({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        patientName: '',
+        patientPhone: '',
+        patientAge: '',
+        patientSex: 'MALE',
+        address: '',
+        preferredDate: new Date().toISOString().split('T')[0],
+        timeSlot: TIME_SLOTS[1],
+        isFastingRequired: true,
+        specialInstructions: '',
+      });
+      setSelectedTests([
+        'HbA1c & Fasting Blood Sugar',
+        'Lipid Profile Extended',
+      ]);
+      setAssignedPhlebotomistId('');
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
@@ -59,29 +106,26 @@ export function NewBookingModal({
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!patientName.trim() || !patientPhone.trim() || !address.trim()) return;
-
+  const onSubmitHandler = handleSubmit((values) => {
     const assignedPhleb = phlebotomists.find((p) => p.id === assignedPhlebotomistId);
 
     const dto: CreateCollectionDto = {
-      patientName: patientName.trim(),
-      patientPhone: patientPhone.trim(),
-      patientAge: patientAge.trim() || undefined,
-      patientSex,
-      address: address.trim(),
-      preferredDate,
-      timeSlot,
-      isFastingRequired,
+      patientName: values.patientName.trim(),
+      patientPhone: values.patientPhone.trim(),
+      patientAge: values.patientAge?.trim() || undefined,
+      patientSex: values.patientSex,
+      address: values.address.trim(),
+      preferredDate: values.preferredDate,
+      timeSlot: values.timeSlot,
+      isFastingRequired: values.isFastingRequired,
       testNames: selectedTests,
-      specialInstructions: specialInstructions.trim() || undefined,
+      specialInstructions: values.specialInstructions?.trim() || undefined,
       assignedPhlebotomistId: assignedPhleb?.id,
       assignedPhlebotomistName: assignedPhleb?.name,
     };
 
     onSubmit(dto);
-  };
+  });
 
   return (
     <div
@@ -112,27 +156,33 @@ export function NewBookingModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
+        <form onSubmit={onSubmitHandler} noValidate className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
           <BookingDemographicsSection
             patientName={patientName}
-            onPatientNameChange={setPatientName}
+            onPatientNameChange={(val) => setValue('patientName', val, { shouldValidate: true })}
             patientPhone={patientPhone}
-            onPatientPhoneChange={setPatientPhone}
+            onPatientPhoneChange={(val) => setValue('patientPhone', val, { shouldValidate: true })}
             patientAge={patientAge}
-            onPatientAgeChange={setPatientAge}
+            onPatientAgeChange={(val) => setValue('patientAge', val, { shouldValidate: true })}
             patientSex={patientSex}
-            onPatientSexChange={setPatientSex}
+            onPatientSexChange={(val) => setValue('patientSex', val, { shouldValidate: true })}
             address={address}
-            onAddressChange={setAddress}
+            onAddressChange={(val) => setValue('address', val, { shouldValidate: true })}
+            errors={{
+              patientName: errors.patientName?.message,
+              patientPhone: errors.patientPhone?.message,
+              patientAge: errors.patientAge?.message,
+              address: errors.address?.message,
+            }}
           />
 
           <BookingSlotSection
             preferredDate={preferredDate}
-            onPreferredDateChange={setPreferredDate}
+            onPreferredDateChange={(val) => setValue('preferredDate', val, { shouldValidate: true })}
             timeSlot={timeSlot}
-            onTimeSlotChange={setTimeSlot}
+            onTimeSlotChange={(val) => setValue('timeSlot', val, { shouldValidate: true })}
             isFastingRequired={isFastingRequired}
-            onFastingChange={setIsFastingRequired}
+            onFastingChange={(val) => setValue('isFastingRequired', val, { shouldValidate: true })}
           />
 
           <BookingTestSelector
@@ -142,7 +192,7 @@ export function NewBookingModal({
             onPhlebotomistChange={setAssignedPhlebotomistId}
             phlebotomists={phlebotomists}
             specialInstructions={specialInstructions}
-            onSpecialInstructionsChange={setSpecialInstructions}
+            onSpecialInstructionsChange={(val) => setValue('specialInstructions', val, { shouldValidate: true })}
           />
 
           {/* Modal Actions */}

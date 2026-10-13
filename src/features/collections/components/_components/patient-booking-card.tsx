@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Phone, MapPin, ExternalLink, Send } from 'lucide-react';
 import { useLabProfile } from '@/features/settings/hooks/use-lab-profile';
 import type { CollectionRequest } from '../../types';

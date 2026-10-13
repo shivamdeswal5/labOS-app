@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuthContext } from '@/providers/auth-provider';
 import type { AppRole, Permission } from '../types/rbac.types';
 import {
@@ -16,7 +16,7 @@ export function useRBAC() {
   const { user } = useAuthContext();
 
   // Resolve base role from user metadata or default to OWNER for superuser/demo
-  const baseRole: AppRole = React.useMemo(() => {
+  const baseRole: AppRole = useMemo(() => {
     const rawRole = (user?.user_metadata?.role as string | undefined)?.toUpperCase();
     if (rawRole === 'PATHOLOGIST') return 'PATHOLOGIST';
     if (rawRole === 'TECHNICIAN') return 'TECHNICIAN';
@@ -30,7 +30,7 @@ export function useRBAC() {
   const canSimulate = baseRole === 'OWNER';
 
   // Reactive simulated role state (strictly ignored if canSimulate is false)
-  const [simulatedRole, setSimulatedRoleState] = React.useState<AppRole | null>(() => {
+  const [simulatedRole, setSimulatedRoleState] = useState<AppRole | null>(() => {
     if (typeof window === 'undefined') return null;
     if (!canSimulate) return null;
     const saved = localStorage.getItem(STORAGE_KEY) as AppRole | null;
@@ -38,7 +38,7 @@ export function useRBAC() {
   });
 
   // Listen to cross-component role changes (active only for authorized simulators)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!canSimulate) return;
 
     const handleStorageChange = () => {
@@ -57,7 +57,7 @@ export function useRBAC() {
   const currentRole: AppRole = canSimulate && simulatedRole ? simulatedRole : baseRole;
   const isSimulating = Boolean(canSimulate && simulatedRole && simulatedRole !== baseRole);
 
-  const setSimulatedRole = React.useCallback(
+  const setSimulatedRole = useCallback(
     (role: AppRole) => {
       if (!canSimulate) {
         console.warn(
@@ -72,13 +72,13 @@ export function useRBAC() {
     [canSimulate],
   );
 
-  const resetRole = React.useCallback(() => {
+  const resetRole = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setSimulatedRoleState(null);
     window.dispatchEvent(new Event(ROLE_CHANGE_EVENT));
   }, []);
 
-  const can = React.useCallback(
+  const can = useCallback(
     (permission: Permission): boolean => {
       const allowed = ROLE_PERMISSIONS[currentRole] || [];
       return allowed.includes(permission);
@@ -86,14 +86,14 @@ export function useRBAC() {
     [currentRole]
   );
 
-  const hasRole = React.useCallback(
+  const hasRole = useCallback(
     (...roles: AppRole[]): boolean => {
       return roles.includes(currentRole);
     },
     [currentRole]
   );
 
-  const canAccessRoute = React.useCallback(
+  const canAccessRoute = useCallback(
     (pathname: string): boolean => {
       // Find matching route config by exact match or prefix
       const matchKey = Object.keys(ROUTE_PERMISSIONS).find(

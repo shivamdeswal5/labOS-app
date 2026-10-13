@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useMemo, type ComponentType } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -24,7 +24,7 @@ import { PathiqLogo } from '@/components/ui/brand';
 export interface NavItem {
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -50,12 +50,12 @@ export function Sidebar({ collapsed, onToggleCollapse, className }: SidebarProps
   const { canAccessRoute } = useRBAC();
 
   // Filter navigation items by role permissions
-  const visibleNavItems = React.useMemo(() => {
+  const visibleNavItems = useMemo(() => {
     return NAV_ITEMS.filter((item) => canAccessRoute(item.href));
   }, [canAccessRoute]);
 
   // Keyboard shortcut listener: Ctrl+B or '[' to toggle sidebar
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeElement = document.activeElement;
       const isInput =

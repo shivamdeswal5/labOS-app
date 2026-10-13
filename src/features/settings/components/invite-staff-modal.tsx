@@ -1,8 +1,13 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, UserPlus, Shield } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useLabProfile } from '../hooks/use-lab-profile';
+import { inviteStaffSchema, type InviteStaffSchema } from '../schemas/invite-staff.schema';
 import type { StaffRole, InviteStaffDto } from '../types';
 
 interface InviteStaffModalProps {
@@ -29,36 +34,55 @@ export function InviteStaffModal({
 }: InviteStaffModalProps) {
   const { data: labProfile } = useLabProfile();
   const labName = labProfile?.name || 'LabOS';
-  const [fullName, setFullName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [role, setRole] = React.useState<StaffRole>('PATHOLOGIST');
-  const [qualification, setQualification] = React.useState('');
-  const [councilRegistration, setCouncilRegistration] = React.useState('');
-  const [signOffScope, setSignOffScope] = React.useState('');
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<InviteStaffSchema>({
+    resolver: zodResolver(inviteStaffSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      role: 'PATHOLOGIST',
+      qualification: '',
+      councilRegistration: '',
+      signOffScope: '',
+    },
+  });
+
+  const role = watch('role');
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        fullName: '',
+        email: '',
+        role: 'PATHOLOGIST',
+        qualification: '',
+        councilRegistration: '',
+        signOffScope: '',
+      });
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim() || !email.trim()) return;
-
+  const onSubmitHandler = handleSubmit((values) => {
     onInvite({
-      fullName: fullName.trim(),
-      email: email.trim(),
-      role,
-      qualification: qualification.trim() || undefined,
-      councilRegistration: councilRegistration.trim() || undefined,
-      signOffScope: signOffScope.trim() || undefined,
+      fullName: values.fullName.trim(),
+      email: values.email.trim(),
+      role: values.role,
+      qualification: values.qualification?.trim() || undefined,
+      councilRegistration: values.councilRegistration?.trim() || undefined,
+      signOffScope: values.signOffScope?.trim() || undefined,
     });
 
-    // Reset and close
-    setFullName('');
-    setEmail('');
-    setQualification('');
-    setCouncilRegistration('');
-    setSignOffScope('');
+    reset();
     onClose();
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-150">
@@ -88,43 +112,50 @@ export function InviteStaffModal({
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={onSubmitHandler} noValidate className="p-6 space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Full Name &amp; Title *
+              Full Name &amp; Title <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              required
               placeholder="e.g. Dr. Ananya Sen / M. Venkatesh"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+              {...register('fullName')}
+              className={cn(
+                'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                errors.fullName && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors.fullName && (
+              <p className="text-[11px] text-destructive mt-1">{errors.fullName.message}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Official Email Address *
+              Official Email Address <span className="text-destructive">*</span>
             </label>
             <input
               type="email"
-              required
               placeholder="name@apexdiagnostic.in"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+              {...register('email')}
+              className={cn(
+                'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                errors.email && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors.email && (
+              <p className="text-[11px] text-destructive mt-1">{errors.email.message}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Workstation Role *
+                Workstation Role <span className="text-destructive">*</span>
               </label>
               <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as StaffRole)}
+                {...register('role')}
                 className="w-full h-10 px-3 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
               >
                 {ROLE_OPTIONS.map((opt) => (
@@ -137,15 +168,20 @@ export function InviteStaffModal({
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Clinical Qualification
+                Clinical Qualification {role === 'PATHOLOGIST' && <span className="text-destructive">*</span>}
               </label>
               <input
                 type="text"
                 placeholder="e.g. MBBS, DCP / B.Sc MLT"
-                value={qualification}
-                onChange={(e) => setQualification(e.target.value)}
-                className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                {...register('qualification')}
+                className={cn(
+                  'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                  errors.qualification && 'border-destructive focus:ring-destructive'
+                )}
               />
+              {errors.qualification && (
+                <p className="text-[11px] text-destructive mt-1">{errors.qualification.message}</p>
+              )}
             </div>
           </div>
 
@@ -158,10 +194,15 @@ export function InviteStaffModal({
                 <input
                   type="text"
                   placeholder="e.g. KMC Reg #58921"
-                  value={councilRegistration}
-                  onChange={(e) => setCouncilRegistration(e.target.value)}
-                  className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                  {...register('councilRegistration')}
+                  className={cn(
+                    'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                    errors.councilRegistration && 'border-destructive'
+                  )}
                 />
+                {errors.councilRegistration && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.councilRegistration.message}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -171,10 +212,15 @@ export function InviteStaffModal({
                 <input
                   type="text"
                   placeholder="e.g. All Panels / Hem & Biochem"
-                  value={signOffScope}
-                  onChange={(e) => setSignOffScope(e.target.value)}
-                  className="w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                  {...register('signOffScope')}
+                  className={cn(
+                    'w-full h-10 px-3.5 bg-background border border-input rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors',
+                    errors.signOffScope && 'border-destructive'
+                  )}
                 />
+                {errors.signOffScope && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.signOffScope.message}</p>
+                )}
               </div>
             </div>
           )}

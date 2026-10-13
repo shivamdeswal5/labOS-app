@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -52,9 +52,9 @@ export function PreviewActionToolbar({
 }: PreviewActionToolbarProps) {
   const { data: labProfile } = useLabProfile();
   const labName = labProfile?.name || 'Diagnostic Laboratory';
-  const [isDownloading, setIsDownloading] = React.useState(false);
-  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = React.useState(false);
-  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { data: reportNotification } = useReportNotification(report.id);
 
@@ -66,7 +66,7 @@ export function PreviewActionToolbar({
     : '';
 
   // Determine if any parameter is out of range / critical flag
-  const hasAbnormalFindings = React.useMemo(() => {
+  const hasAbnormalFindings = useMemo(() => {
     return report.values?.some((v) => v.isOutOfRange) ?? false;
   }, [report.values]);
 

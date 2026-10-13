@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Building2, ChevronRight, Loader2 } from 'lucide-react';
@@ -28,7 +28,7 @@ interface StepLabProfileProps {
 
 export function StepLabProfile({ initialData, onNext }: StepLabProfileProps) {
   const updateLab = useUpdateLab();
-  const [selectedColor, setSelectedColor] = React.useState(
+  const [selectedColor, setSelectedColor] = useState(
     initialData.accentColor ?? '#0f172a',
   );
 

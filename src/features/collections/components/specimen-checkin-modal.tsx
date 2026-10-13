@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type FormEvent } from 'react';
 import {
   X,
   CheckCircle2,
@@ -27,11 +27,11 @@ export function SpecimenCheckinModal({
   onConfirmCheckin,
   isCheckingIn = false,
 }: SpecimenCheckinModalProps) {
-  const [temperature, setTemperature] = React.useState('4.2');
-  const [handoverNotes, setHandoverNotes] = React.useState(
+  const [temperature, setTemperature] = useState('4.2');
+  const [handoverNotes, setHandoverNotes] = useState(
     'Cold box seal intact. Samples transferred to specimen reception rack.',
   );
-  const [verifiedTubes, setVerifiedTubes] = React.useState<Record<string, boolean>>(() => {
+  const [verifiedTubes, setVerifiedTubes] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     collection.samples.forEach((s) => {
       initial[s.id] = true;
@@ -45,7 +45,7 @@ export function SpecimenCheckinModal({
     setVerifiedTubes((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleConfirm = (e: React.FormEvent) => {
+  const handleConfirm = (e: FormEvent) => {
     e.preventDefault();
     onConfirmCheckin(`${temperature}°C`, handoverNotes);
   };

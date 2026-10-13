@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { FlaskConical, Truck, Lightbulb } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import type { TestProfitabilityMetric } from '@/features/billing/types';

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -39,7 +40,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html

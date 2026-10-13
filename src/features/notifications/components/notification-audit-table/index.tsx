@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   Search,
   Eye,
@@ -27,13 +27,13 @@ export function NotificationAuditTable({
   logs,
   onOpenWhatsAppModal,
 }: NotificationAuditTableProps) {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedChannel, setSelectedChannel] = React.useState<'ALL' | NotificationChannel>('ALL');
-  const [selectedStatus, setSelectedStatus] = React.useState<'ALL' | 'DELIVERED_OR_READ' | 'SENT' | 'FAILED'>('ALL');
-  const [activeLogForDetail, setActiveLogForDetail] = React.useState<NotificationLog | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedChannel, setSelectedChannel] = useState<'ALL' | NotificationChannel>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'DELIVERED_OR_READ' | 'SENT' | 'FAILED'>('ALL');
+  const [activeLogForDetail, setActiveLogForDetail] = useState<NotificationLog | null>(null);
 
   // Filter pipeline
-  const filteredLogs = React.useMemo(() => {
+  const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       // 1. Channel
       if (selectedChannel !== 'ALL' && log.channel !== selectedChannel) {

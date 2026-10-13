@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import JsBarcode from 'jsbarcode';
 
 interface ReportBarcodeProps {
@@ -16,9 +16,9 @@ export function ReportBarcode({
   height = 26,
   className = '',
 }: ReportBarcodeProps) {
-  const svgRef = React.useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!svgRef.current || !value) return;
 
     try {

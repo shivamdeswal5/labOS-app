@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Award, FileText, CheckCircle2, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LabProfile } from '../types';
@@ -19,8 +19,8 @@ const ACCREDITED_SWATCHES = [
 ];
 
 export function BrandingLetterheadSection({ profile, onChange }: BrandingLetterheadSectionProps) {
-  const [logoInput, setLogoInput] = React.useState(profile.logoUrl || '');
-  const [showLogoInput, setShowLogoInput] = React.useState(false);
+  const [logoInput, setLogoInput] = useState(profile.logoUrl || '');
+  const [showLogoInput, setShowLogoInput] = useState(false);
 
   const initialLetter = (profile.name || 'D').trim().charAt(0).toUpperCase();
   const accentColor = profile.accentColor || '#0f766e';

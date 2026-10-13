@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Stethoscope,
   UserPlus,
@@ -54,7 +54,7 @@ export default function ReferralsPage() {
   const canViewCommissions = can('REFERRALS:COMMISSIONS_VIEW');
   const isAuthorized = hasRole('OWNER', 'PATHOLOGIST', 'TECHNICIAN');
 
-  const [selectedTab, setSelectedTab] = React.useState<'doctors' | 'outsourced'>('doctors');
+  const [selectedTab, setSelectedTab] = useState<'doctors' | 'outsourced'>('doctors');
 
   // Derive effective active tab based on permissions with zero cascading renders
   const activeTab: 'doctors' | 'outsourced' = canViewCommissions ? selectedTab : 'outsourced';
@@ -64,14 +64,14 @@ export default function ReferralsPage() {
   };
 
   // --- Doctor Referrals State ---
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [filterMode, setFilterMode] = React.useState<'ALL' | 'PENDING' | 'SETTLED'>('ALL');
-  const [selectedDoctorId, setSelectedDoctorId] = React.useState<string | null>(null);
-  const [mobileTab, setMobileTab] = React.useState<'ROSTER' | 'LEDGER'>('ROSTER');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState<'ALL' | 'PENDING' | 'SETTLED'>('ALL');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'ROSTER' | 'LEDGER'>('ROSTER');
 
   // Doctor Modals
-  const [isAddDoctorOpen, setIsAddDoctorOpen] = React.useState(false);
-  const [settleModalState, setSettleModalState] = React.useState<{
+  const [isAddDoctorOpen, setIsAddDoctorOpen] = useState(false);
+  const [settleModalState, setSettleModalState] = useState<{
     isOpen: boolean;
     doctor: ReferringDoctor | null;
     entries: CommissionLedgerEntry[];
@@ -101,7 +101,7 @@ export default function ReferralsPage() {
   } = useCommissionSummary();
 
   const effectiveDoctorId = selectedDoctorId ?? doctors[0]?.id ?? null;
-  const selectedDoctor = React.useMemo(() => {
+  const selectedDoctor = useMemo(() => {
     return doctors.find((d) => d.id === effectiveDoctorId) || doctors[0] || null;
   }, [doctors, effectiveDoctorId]);
 
@@ -111,10 +111,10 @@ export default function ReferralsPage() {
   } = useDoctorLedger(selectedDoctor?.id);
 
   // --- Outsourced Send-Outs State ---
-  const [outsourcedSearch, setOutsourcedSearch] = React.useState('');
-  const [outsourcedStatusFilter, setOutsourcedStatusFilter] = React.useState<'ALL' | OutsourcedTestStatus>('ALL');
-  const [isNewOutsourcedOpen, setIsNewOutsourcedOpen] = React.useState(false);
-  const [receiveModalState, setReceiveModalState] = React.useState<{
+  const [outsourcedSearch, setOutsourcedSearch] = useState('');
+  const [outsourcedStatusFilter, setOutsourcedStatusFilter] = useState<'ALL' | OutsourcedTestStatus>('ALL');
+  const [isNewOutsourcedOpen, setIsNewOutsourcedOpen] = useState(false);
+  const [receiveModalState, setReceiveModalState] = useState<{
     isOpen: boolean;
     test: OutsourcedTest | null;
   }>({
@@ -123,13 +123,13 @@ export default function ReferralsPage() {
   });
 
   // Inline toast for dispatch / status mutations
-  const [dispatchToast, setDispatchToast] = React.useState<{
+  const [dispatchToast, setDispatchToast] = useState<{
     visible: boolean;
     type: 'success' | 'error' | 'info';
     message: string;
   } | null>(null);
 
-  const showDispatchToast = React.useCallback(
+  const showDispatchToast = useCallback(
     (type: 'success' | 'error' | 'info', message: string) => {
       setDispatchToast({ visible: true, type, message });
       setTimeout(() => setDispatchToast(null), 4000);
@@ -143,7 +143,7 @@ export default function ReferralsPage() {
     refetch: refetchOutsourced,
   } = useOutsourcedTests();
 
-  const outsourcedStats = React.useMemo(
+  const outsourcedStats = useMemo(
     () => computeOutsourcedStats(outsourcedTests),
     [outsourcedTests],
   );

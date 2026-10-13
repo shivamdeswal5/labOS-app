@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import type { KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import type { SettingsTabId } from '../types';
 
@@ -14,12 +14,12 @@ const TABS: { id: SettingsTabId; label: string }[] = [
   { id: 'branding', label: 'Report Header & Letterhead' },
   { id: 'signatures', label: 'Pathologist Signatures & Credentials' },
   { id: 'team', label: 'Team & Access Roles' },
-  { id: 'analyzers', label: 'API & Analyzer Interfacing' },
   { id: 'billing', label: 'Subscription & Platform Billing' },
 ];
 
+
 export function SettingsTabNav({ activeTab, onSelectTab }: SettingsTabNavProps) {
-  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+  const handleKeyDown = (e: KeyboardEvent, index: number) => {
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       const nextIdx = (index + 1) % TABS.length;

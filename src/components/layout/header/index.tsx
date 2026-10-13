@@ -1,9 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Plus, Bell, Menu, ShieldCheck, Radio } from 'lucide-react';
+import { Search, Plus, Bell, Menu, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { TrialHeaderBadge } from '@/features/subscription';
@@ -94,21 +93,18 @@ export function Header({
         <button
           id="header-live-activity-btn"
           onClick={onOpenLiveActivity}
-          className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors relative"
-          aria-label={`Live activity feed${unreadCount > 0 ? ` — ${unreadCount} unread events` : ''}`}
-          title="Live Clinical Telemetry"
+          className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors relative cursor-pointer"
+          aria-label={`Live clinical alerts${unreadCount > 0 ? ` — ${unreadCount} unread events` : ''}`}
+          title="Live Clinical Alerts & Notifications"
         >
-          {unreadCount > 0 ? (
-            <Radio className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-          ) : (
-            <Bell className="w-4 h-4" />
-          )}
+          <Bell className={cn('w-4 h-4 transition-colors', unreadCount > 0 ? 'text-primary' : 'text-muted-foreground')} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-white px-1 leading-none">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-white px-1 leading-none shadow-xs">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>
+
 
         {/* Quality / Accreditation Chip */}
         <div className="hidden sm:flex items-center text-muted-foreground" title="NABL Verified System">

@@ -1,14 +1,16 @@
 'use client';
 'use no memo';
 
-import * as React from 'react';
+import { useState, useEffect, type HTMLAttributes, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, UserPlus, Loader2, CheckCircle2, Mail, Building2 } from 'lucide-react';
 import { signupSchema, type SignupSchema } from '../../schemas/signup.schema';
 import { useSignup } from '../../api/use-auth';
 import { cn } from '@/lib/utils';
+
 
 interface FieldProps {
   id: string;
@@ -16,10 +18,10 @@ interface FieldProps {
   type?: string;
   placeholder?: string;
   autoComplete?: string;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  inputMode?: HTMLAttributes<HTMLInputElement>['inputMode'];
   error?: string;
   registration: ReturnType<ReturnType<typeof useForm<SignupSchema>>['register']>;
-  endAdornment?: React.ReactNode;
+  endAdornment?: ReactNode;
 }
 
 function Field({
@@ -72,11 +74,34 @@ function Field({
 }
 
 export function SignupForm() {
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirm, setShowConfirm] = React.useState(false);
-  const [emailConfirmRequired, setEmailConfirmRequired] = React.useState(false);
-  const [submittedEmail, setSubmittedEmail] = React.useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [emailConfirmRequired, setEmailConfirmRequired] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const searchParams = useSearchParams();
   const signup = useSignup();
+
+  useEffect(() => {
+    if (!searchParams) return;
+    const plan = searchParams.get('plan');
+    const billing = searchParams.get('billing');
+
+    if (plan && ['STARTER', 'GROWTH', 'SCALE'].includes(plan.toUpperCase())) {
+      try {
+        sessionStorage.setItem('pathiq_selected_plan', plan.toUpperCase());
+      } catch {
+        // Safe fallback if storage unavailable
+      }
+    }
+    if (billing && ['MONTHLY', 'YEARLY'].includes(billing.toUpperCase())) {
+      try {
+        sessionStorage.setItem('pathiq_selected_billing', billing.toUpperCase());
+      } catch {
+        // Safe fallback if storage unavailable
+      }
+    }
+  }, [searchParams]);
+
 
   const {
     register,

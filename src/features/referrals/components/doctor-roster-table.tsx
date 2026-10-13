@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import { Search, X, ChevronRight, RefreshCw, Stethoscope } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { EllipsisCell, TablePagination, EmptyState } from '@/components/shared';
@@ -28,7 +28,7 @@ export function DoctorRosterTable({
   onRefresh,
 }: DoctorRosterTableProps) {
   // Filter doctors
-  const filteredDoctors = React.useMemo(() => {
+  const filteredDoctors = useMemo(() => {
     return doctors.filter((doc) => {
       if (filterMode === 'PENDING' && doc.pendingAmount <= 0) return false;
       if (filterMode === 'SETTLED' && doc.pendingAmount > 0) return false;
@@ -36,11 +36,11 @@ export function DoctorRosterTable({
     });
   }, [doctors, filterMode]);
 
-  const pendingCount = React.useMemo(
+  const pendingCount = useMemo(
     () => doctors.filter((d) => d.pendingAmount > 0).length,
     [doctors],
   );
-  const settledCount = React.useMemo(
+  const settledCount = useMemo(
     () => doctors.filter((d) => d.pendingAmount <= 0).length,
     [doctors],
   );

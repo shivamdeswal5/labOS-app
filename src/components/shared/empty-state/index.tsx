@@ -1,14 +1,14 @@
 'use client';
 
-import * as React from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   title: string;
   description?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
   className?: string;
 }
 

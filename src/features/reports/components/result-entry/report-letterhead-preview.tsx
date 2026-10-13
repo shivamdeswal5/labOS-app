@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { ExternalLink, ShieldCheck, Eye } from 'lucide-react';
 import { formatDate } from '@/lib/formatters';
@@ -47,7 +47,7 @@ export function ReportLetterheadPreview({
     : null;
 
   // Format creation or report date
-  const reportDate = React.useMemo(() => {
+  const reportDate = useMemo(() => {
     return formatDate(report.createdAt || new Date().toISOString());
   }, [report.createdAt]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { X, UserCheck, MapPin, Truck, ThermometerSnowflake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { CollectionRequest, Phlebotomist } from '../types';
@@ -22,7 +22,7 @@ export function AssignPhlebotomistModal({
   onAssign,
   isAssigning = false,
 }: AssignPhlebotomistModalProps) {
-  const [selectedPhlebId, setSelectedPhlebId] = React.useState<string>(
+  const [selectedPhlebId, setSelectedPhlebId] = useState<string>(
     collection.assignedPhlebotomistId || phlebotomists[0]?.id || '',
   );
 

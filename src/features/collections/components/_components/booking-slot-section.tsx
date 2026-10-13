@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { AlertCircle } from 'lucide-react';
 
 export const TIME_SLOTS = [

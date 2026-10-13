@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { LogOut, ChevronLeft, ChevronRight, UserCog, ShieldCheck, RotateCcw } from 'lucide-react';
 import { useAuthContext } from '@/providers/auth-provider';
 import { useLogout } from '@/features/auth/api/use-auth';
@@ -16,7 +16,7 @@ export function SidebarFooter({ collapsed, onToggleCollapse }: SidebarFooterProp
   const { user } = useAuthContext();
   const logout = useLogout();
   const { canSimulate, isSimulating, roleMeta, resetRole } = useRBAC();
-  const [isSimulatorOpen, setIsSimulatorOpen] = React.useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
 
   // If simulating, show simulated persona name; otherwise derive from real auth user
   const effectiveName = isSimulating

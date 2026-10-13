@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { ShieldCheck, CheckCircle2, Phone, Mail, MessageSquare } from 'lucide-react';
 import type { LabProfile } from '../types';
 

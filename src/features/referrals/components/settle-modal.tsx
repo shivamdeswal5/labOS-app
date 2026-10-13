@@ -1,11 +1,16 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, CheckCircle2, Building, Smartphone, Banknote, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/formatters';
+import { cn } from '@/lib/utils';
 import { useSettleCommission } from '../api/use-commission';
-import type { ReferringDoctor, CommissionLedgerEntry, PaymentMethod } from '../types';
+import { settleCommissionSchema, type SettleCommissionSchema } from '../schemas/settle-commission.schema';
+import type { ReferringDoctor, CommissionLedgerEntry } from '../types';
 
 interface SettleModalProps {
   isOpen: boolean;
@@ -20,30 +25,53 @@ export function SettleModal({
   doctor,
   pendingEntries,
 }: SettleModalProps) {
-  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('BANK_TRANSFER');
-  const [notes, setNotes] = React.useState('');
   const settleMutation = useSettleCommission();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<SettleCommissionSchema>({
+    resolver: zodResolver(settleCommissionSchema),
+    defaultValues: {
+      paymentMethod: 'BANK_TRANSFER',
+      notes: '',
+    },
+  });
+
+  const paymentMethod = watch('paymentMethod');
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        paymentMethod: 'BANK_TRANSFER',
+        notes: '',
+      });
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen || !doctor) return null;
 
   const totalAmount = pendingEntries.reduce((sum, e) => sum + e.amount, 0) || doctor.pendingAmount;
 
-  const handleSettle = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = handleSubmit(async (values) => {
     try {
       await settleMutation.mutateAsync({
         doctorId: doctor.id,
         entryIds: pendingEntries.map((e) => e.id),
         ledgerIds: pendingEntries.map((e) => e.id),
-        paymentMethod,
-        notes: notes || `Settled via ${paymentMethod} on ${new Date().toLocaleDateString('en-IN')}`,
+        paymentMethod: values.paymentMethod,
+        notes: values.notes?.trim() || `Settled via ${values.paymentMethod} on ${new Date().toLocaleDateString('en-IN')}`,
       });
+      reset();
       onClose();
     } catch (err) {
       console.error('Failed to settle commissions:', err);
     }
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in-0">
@@ -72,7 +100,7 @@ export function SettleModal({
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSettle} className="p-4 space-y-3.5 text-xs">
+        <form onSubmit={onSubmit} noValidate className="p-4 space-y-3.5 text-xs">
           {/* Summary Box */}
           <div className="p-3 bg-muted/40 rounded-xl border border-border flex items-center justify-between">
             <div className="flex flex-col">
@@ -102,7 +130,7 @@ export function SettleModal({
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => setPaymentMethod('BANK_TRANSFER')}
+                onClick={() => setValue('paymentMethod', 'BANK_TRANSFER', { shouldValidate: true })}
                 className={`p-2.5 rounded-lg border flex flex-col items-center gap-1 transition-all ${
                   paymentMethod === 'BANK_TRANSFER'
                     ? 'bg-card border-primary text-foreground font-semibold shadow-sm'
@@ -115,7 +143,7 @@ export function SettleModal({
 
               <button
                 type="button"
-                onClick={() => setPaymentMethod('UPI')}
+                onClick={() => setValue('paymentMethod', 'UPI', { shouldValidate: true })}
                 className={`p-2.5 rounded-lg border flex flex-col items-center gap-1 transition-all ${
                   paymentMethod === 'UPI'
                     ? 'bg-card border-primary text-foreground font-semibold shadow-sm'
@@ -128,7 +156,7 @@ export function SettleModal({
 
               <button
                 type="button"
-                onClick={() => setPaymentMethod('CASH')}
+                onClick={() => setValue('paymentMethod', 'CASH', { shouldValidate: true })}
                 className={`p-2.5 rounded-lg border flex flex-col items-center gap-1 transition-all ${
                   paymentMethod === 'CASH'
                     ? 'bg-card border-primary text-foreground font-semibold shadow-sm'
@@ -148,11 +176,16 @@ export function SettleModal({
             </label>
             <input
               type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              {...register('notes')}
               placeholder="e.g. UTR #HDFC09218204 or Cash handed to clinic receptionist"
-              className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+              className={cn(
+                'w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono',
+                errors.notes && 'border-destructive focus:border-destructive'
+              )}
             />
+            {errors.notes && (
+              <p className="text-[11px] text-destructive mt-1">{errors.notes.message}</p>
+            )}
           </div>
 
           {/* Compliance Notice */}

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   Search,
   FlaskConical,
@@ -17,12 +17,12 @@ interface UnitMarginsTableProps {
 }
 
 export function UnitMarginsTable({ metrics }: UnitMarginsTableProps) {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [executionFilter, setExecutionFilter] = React.useState<
+  const [searchQuery, setSearchQuery] = useState('');
+  const [executionFilter, setExecutionFilter] = useState<
     'ALL' | 'IN_HOUSE' | 'OUTSOURCED' | 'HIGH_MARGIN'
   >('ALL');
 
-  const filteredMetrics = React.useMemo(() => {
+  const filteredMetrics = useMemo(() => {
     return metrics.filter((m) => {
       if (executionFilter === 'IN_HOUSE' && m.executionType !== 'IN_HOUSE') return false;
       if (executionFilter === 'OUTSOURCED' && m.executionType !== 'OUTSOURCED') return false;

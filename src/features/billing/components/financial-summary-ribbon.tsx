@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Wallet, CheckCircle2, TrendingDown, Activity, ArrowUpRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import type { FinancialSummary } from '../types';

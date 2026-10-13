@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { AlertTriangle, Lock, ArrowRight } from 'lucide-react';
 import { useTenantSubscriptionQuery } from '../../api/subscription.queries';
 import { PlanUpgradeModal } from '../plan-upgrade-modal';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 
 export function GracePeriodBanner() {
   const { data: subscription } = useTenantSubscriptionQuery();
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   if (!subscription || (subscription.status !== 'GRACE_PERIOD' && subscription.status !== 'LOCKED')) {
     return null;

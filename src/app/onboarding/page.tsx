@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { StepLabProfile } from '@/features/onboarding/components/step-lab-profile';
 import { StepPathologist } from '@/features/onboarding/components/step-pathologist';
@@ -21,7 +21,7 @@ const INITIAL_STATE: OnboardingWizardState = {
 };
 
 export default function OnboardingPage() {
-  const [state, setState] = React.useState<OnboardingWizardState>(INITIAL_STATE);
+  const [state, setState] = useState<OnboardingWizardState>(INITIAL_STATE);
 
   const goToStep = (step: OnboardingWizardState['step']) => {
     setState((prev) => ({ ...prev, step }));

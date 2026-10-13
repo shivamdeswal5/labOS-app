@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useRef, useState, type HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-interface EllipsisCellProps extends React.HTMLAttributes<HTMLDivElement> {
+interface EllipsisCellProps extends HTMLAttributes<HTMLDivElement> {
   value: string;
   maxLines?: number;
   className?: string;
@@ -20,10 +20,10 @@ export function EllipsisCell({
   className,
   ...props
 }: EllipsisCellProps) {
-  const [isOverflowing, setIsOverflowing] = React.useState(false);
-  const textRef = React.useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const element = textRef.current;
     if (!element) return;
 

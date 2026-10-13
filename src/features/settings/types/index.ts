@@ -91,5 +91,4 @@ export type SettingsTabId =
   | 'branding'
   | 'signatures'
   | 'team'
-  | 'analyzers'
   | 'billing';

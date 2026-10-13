@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Upload, ShieldCheck, Check, Info } from 'lucide-react';
 import type { StaffMember } from '../types';
 

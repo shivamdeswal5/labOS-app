@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useRef, useState, type ElementType } from 'react';
 import Link from 'next/link';
 import {
   FileText,
@@ -41,11 +41,11 @@ export function PaperStationerySelector({
   isSavingDefault = false,
   isModified = false,
 }: PaperStationerySelectorProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Close when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -63,7 +63,7 @@ export function PaperStationerySelector({
     type: StationeryType;
     label: string;
     sublabel: string;
-    icon: React.ElementType;
+    icon: ElementType;
     badge?: string;
   }[] = [
     {

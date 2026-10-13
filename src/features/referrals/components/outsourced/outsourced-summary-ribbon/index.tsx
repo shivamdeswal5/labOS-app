@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Truck, Clock, CheckCircle2, Receipt, ArrowUpRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import type { OutsourcedSummaryStats } from '@/features/referrals/types';

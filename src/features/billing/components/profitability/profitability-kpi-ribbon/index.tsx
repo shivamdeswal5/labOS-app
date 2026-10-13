@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { TrendingUp, DollarSign, Percent, Wallet, ArrowUpRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import type { ProfitabilitySummaryStats } from '@/features/billing/types';

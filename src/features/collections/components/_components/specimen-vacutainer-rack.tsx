@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type FormEvent } from 'react';
 import { FlaskConical, Barcode, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { CollectionRequest, TubeType, CollectionSample } from '../../types';
@@ -26,10 +26,10 @@ export function SpecimenVacutainerRack({
   localSamples,
   onAddSampleTube,
 }: SpecimenVacutainerRackProps) {
-  const [newTubeType, setNewTubeType] = React.useState<TubeType>('EDTA');
-  const [newBarcode, setNewBarcode] = React.useState('');
+  const [newTubeType, setNewTubeType] = useState<TubeType>('EDTA');
+  const [newBarcode, setNewBarcode] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!newBarcode.trim()) return;
     onAddSampleTube(newTubeType, newBarcode.trim().toUpperCase());

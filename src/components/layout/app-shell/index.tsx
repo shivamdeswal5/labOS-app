@@ -1,46 +1,53 @@
 'use client';
 
-import * as React from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { Sidebar } from '../sidebar';
 import { Header } from '../header';
 import { MobileNav } from '../mobile-nav';
 import { CommandPalette } from '../command-palette';
 import { LiveActivityDrawer } from '@/components/shared/live-activity-drawer';
 import { useRealtime } from '@/providers/realtime-provider';
+import dynamic from 'next/dynamic';
 import { GracePeriodBanner } from '@/features/subscription';
 import { cn } from '@/lib/utils';
+
+const SupportSessionBanner = dynamic(
+  () =>
+    import('../support-session-banner').then((mod) => mod.SupportSessionBanner),
+  { ssr: false },
+);
 
 export type AppShellVariant = 'contained' | 'full-bleed' | 'workspace';
 
 interface AppShellProps {
-  children: React.ReactNode;
+  children: ReactNode;
   variant?: AppShellVariant;
   className?: string;
 }
 
 export function AppShell({ children, variant = 'contained', className }: AppShellProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
-  const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const { setIsDrawerOpen, unreadCount } = useRealtime();
 
-  const handleToggleSidebar = React.useCallback(() => {
+  const handleToggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => !prev);
   }, []);
 
-  const handleOpenMobileNav = React.useCallback(() => {
+  const handleOpenMobileNav = useCallback(() => {
     setMobileNavOpen(true);
   }, []);
 
-  const handleCloseMobileNav = React.useCallback(() => {
+  const handleCloseMobileNav = useCallback(() => {
     setMobileNavOpen(false);
   }, []);
 
-  const handleOpenCommandPalette = React.useCallback(() => {
+  const handleOpenCommandPalette = useCallback(() => {
     setCommandPaletteOpen(true);
   }, []);
 
-  const handleOpenLiveActivity = React.useCallback(() => {
+  const handleOpenLiveActivity = useCallback(() => {
     setIsDrawerOpen(true);
   }, [setIsDrawerOpen]);
 
@@ -91,6 +98,9 @@ export function AppShell({ children, variant = 'contained', className }: AppShel
           'pl-0',
         )}
       >
+        {/* Super Admin Ghost Mode Support Session Alert */}
+        <SupportSessionBanner />
+
         {/* Grace Period & Expiration Warning Banner */}
         <GracePeriodBanner />
 

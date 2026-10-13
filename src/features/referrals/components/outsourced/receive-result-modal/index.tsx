@@ -1,9 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useUpdateOutsourcedStatus } from '@/features/referrals/api/use-outsourced';
+import { receiveResultSchema, type ReceiveResultSchema } from '@/features/referrals/schemas/receive-result.schema';
 import type { OutsourcedTest } from '@/features/referrals/types';
 
 interface ReceiveResultModalProps {
@@ -61,19 +64,26 @@ interface ReceiveResultFormProps {
 }
 
 function ReceiveResultForm({ test, onClose }: ReceiveResultFormProps) {
-  const [refReportId, setRefReportId] = React.useState('');
-  const [resultsText, setResultsText] = React.useState(test.resultSummary || '');
-  const [confirmedCost, setConfirmedCost] = React.useState<number | ''>(test.cost || 400);
-
   const updateStatusMutation = useUpdateOutsourcedStatus();
 
-  const handleReceive = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ReceiveResultSchema>({
+    resolver: zodResolver(receiveResultSchema),
+    defaultValues: {
+      refReportId: '',
+      resultsText: test.resultSummary || '',
+      confirmedCost: test.cost || 400,
+    },
+  });
 
+  const onSubmit = handleSubmit(async (values) => {
     const mergedNotes = [
       test.notes,
-      refReportId ? `Ref Lab Report ID: ${refReportId}` : null,
-      resultsText ? `Findings: ${resultsText}` : null,
+      values.refReportId?.trim() ? `Ref Lab Report ID: ${values.refReportId.trim()}` : null,
+      values.resultsText?.trim() ? `Findings: ${values.resultsText.trim()}` : null,
     ]
       .filter(Boolean)
       .join(' | ');
@@ -83,7 +93,7 @@ function ReceiveResultForm({ test, onClose }: ReceiveResultFormProps) {
         id: test.id,
         dto: {
           status: 'RECEIVED',
-          cost: typeof confirmedCost === 'number' ? confirmedCost : undefined,
+          cost: values.confirmedCost !== undefined ? Number(values.confirmedCost) : undefined,
           notes: mergedNotes,
         },
       });
@@ -91,10 +101,10 @@ function ReceiveResultForm({ test, onClose }: ReceiveResultFormProps) {
     } catch (err) {
       console.error('Failed to receive outsourced test result:', err);
     }
-  };
+  });
 
   return (
-    <form onSubmit={handleReceive} className="p-4 flex flex-col gap-4 text-xs">
+    <form onSubmit={onSubmit} noValidate className="p-4 flex flex-col gap-4 text-xs">
       {/* Context Banner */}
       <div className="p-3 bg-muted/50 rounded-lg border border-border flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
@@ -118,25 +128,34 @@ function ReceiveResultForm({ test, onClose }: ReceiveResultFormProps) {
         <input
           type="text"
           placeholder="e.g. LAL-992104 or SRL-B8842"
-          value={refReportId}
-          onChange={(e) => setRefReportId(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono"
+          {...register('refReportId')}
+          className={cn(
+            'h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:outline-none focus:border-primary',
+            errors.refReportId && 'border-destructive'
+          )}
         />
+        {errors.refReportId && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.refReportId.message}</p>
+        )}
       </div>
 
       {/* Findings & Values */}
       <div className="flex flex-col gap-1">
         <label className="text-muted-foreground font-medium">
-          Reference Lab Findings &amp; Values <span className="text-red-500">*</span>
+          Reference Lab Findings &amp; Values <span className="text-destructive">*</span>
         </label>
         <textarea
-          required
           rows={4}
           placeholder="e.g. 25-OH Vitamin D: 14.2 ng/mL (Deficient, Reference: 30 - 100 ng/mL). Method: CLIA. Specimen processed at accredited hub."
-          value={resultsText}
-          onChange={(e) => setResultsText(e.target.value)}
-          className="p-3 rounded-lg border border-border bg-background text-foreground font-mono text-xs leading-relaxed resize-none"
+          {...register('resultsText')}
+          className={cn(
+            'p-3 rounded-lg border border-border bg-background text-foreground font-mono text-xs leading-relaxed resize-none focus:outline-none focus:border-primary',
+            errors.resultsText && 'border-destructive focus:border-destructive'
+          )}
         />
+        {errors.resultsText && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.resultsText.message}</p>
+        )}
         <p className="text-[11px] text-muted-foreground">
           These findings will be merged into the patient&apos;s unified diagnostic letterhead with NABL reference lab accreditation notes.
         </p>
@@ -155,11 +174,16 @@ function ReceiveResultForm({ test, onClose }: ReceiveResultFormProps) {
             type="number"
             min="0"
             step="10"
-            value={confirmedCost}
-            onChange={(e) => setConfirmedCost(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-9 pl-7 pr-3 w-full rounded-lg border border-border bg-background text-foreground font-mono font-semibold"
+            {...register('confirmedCost')}
+            className={cn(
+              'h-9 pl-7 pr-3 w-full rounded-lg border border-border bg-background text-foreground font-mono font-semibold focus:outline-none focus:border-primary',
+              errors.confirmedCost && 'border-destructive'
+            )}
           />
         </div>
+        {errors.confirmedCost && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.confirmedCost.message}</p>
+        )}
       </div>
 
       {/* Actions */}
@@ -170,7 +194,7 @@ function ReceiveResultForm({ test, onClose }: ReceiveResultFormProps) {
         <Button
           type="submit"
           size="sm"
-          disabled={updateStatusMutation.isPending || !resultsText.trim()}
+          disabled={updateStatusMutation.isPending}
           className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           <CheckCircle2 className="w-3.5 h-3.5" />

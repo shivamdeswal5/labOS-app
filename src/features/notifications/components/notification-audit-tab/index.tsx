@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import { RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationKpiRibbon } from '../notification-kpi-ribbon';
@@ -19,7 +19,7 @@ interface NotificationAuditTabProps {
 export function NotificationAuditTab({ onOpenWhatsAppModal }: NotificationAuditTabProps) {
   const { data: logs = [], isLoading, isError, error, refetch } = useNotificationLogs();
 
-  const stats = React.useMemo(() => computeNotificationStats(logs), [logs]);
+  const stats = useMemo(() => computeNotificationStats(logs), [logs]);
 
   if (isLoading) {
     return (

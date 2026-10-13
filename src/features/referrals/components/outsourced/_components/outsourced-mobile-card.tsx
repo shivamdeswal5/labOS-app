@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { Truck, CheckCircle2, Clock, ExternalLink } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';

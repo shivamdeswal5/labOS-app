@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Lock, Sparkles, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

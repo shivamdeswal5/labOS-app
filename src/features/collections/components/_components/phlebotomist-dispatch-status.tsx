@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Truck, UserCheck, ThermometerSnowflake, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { CollectionRequest } from '../../types';

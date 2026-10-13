@@ -9,7 +9,9 @@ export const labProfileStepSchema = z.object({
   phoneNumber: z
     .string()
     .min(10, 'Enter a valid phone number')
-    .regex(/^[0-9+\s\-()]+$/, 'Invalid phone number'),
+    .refine((v) => /^[6-9]\d{9}$/.test(v.replace(/\D/g, '')), {
+      message: 'Enter a valid 10-digit Indian phone number',
+    }),
   nablRegistrationId: z.string().max(50).optional(),
   accentColor: z
     .string()

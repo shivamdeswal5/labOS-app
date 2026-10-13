@@ -1,19 +1,22 @@
 'use client';
 'use no memo';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
 import { loginSchema, type LoginSchema } from '../../schemas/login.schema';
-import { useLogin, useForgotPassword } from '../../api/use-auth';
+import { useLogin, useForgotPassword, useLogout } from '../../api/use-auth';
+import { useAuthContext } from '@/providers/auth-provider';
 import { cn } from '@/lib/utils';
 
 export function LoginForm() {
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [forgotSentEmail, setForgotSentEmail] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotSentEmail, setForgotSentEmail] = useState<string | null>(null);
+  const { user } = useAuthContext();
   const login = useLogin();
+  const logout = useLogout();
   const forgotPassword = useForgotPassword();
 
   const {
@@ -44,6 +47,28 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
+      {/* Active account switcher badge */}
+      {user && (
+        <div className="p-3 bg-muted/60 border border-border rounded-xl text-xs space-y-2 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Currently signed in as:</span>
+            <span className="font-semibold text-foreground truncate max-w-[180px]">{user.email}</span>
+          </div>
+          <div className="flex items-center justify-between pt-1 border-t border-border/40">
+            <Link href="/" className="text-primary hover:underline font-medium">
+              Continue to Dashboard →
+            </Link>
+            <button
+              type="button"
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
+              className="text-destructive hover:underline font-medium"
+            >
+              {logout.isPending ? 'Signing out...' : 'Sign Out'}
+            </button>
+          </div>
+        </div>
+      )}
       {/* Global error */}
       {login.error && (
         <div

@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { ShieldCheck, FileText, ExternalLink, CheckCheck } from 'lucide-react';
 
 interface WhatsAppChatBubbleProps {

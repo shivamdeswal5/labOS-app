@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import { Search, Clock, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
@@ -21,10 +21,10 @@ export function PanelsDirectoryList({
   searchQuery,
   onSearchChange,
 }: PanelsDirectoryListProps) {
-  const selectedRef = React.useRef<HTMLDivElement | null>(null);
+  const selectedRef = useRef<HTMLDivElement | null>(null);
 
   // Smoothly scroll the selected card into view within the directory pane
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedRef.current) {
       selectedRef.current.scrollIntoView({
         behavior: 'smooth',

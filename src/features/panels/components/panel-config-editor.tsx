@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import {
   GripVertical,
   Undo2,
@@ -25,9 +25,9 @@ interface PanelConfigEditorProps {
 
 export function PanelConfigEditor({ panel, onSave, onBack, isSaving = false }: PanelConfigEditorProps) {
   // Local draft state for reactive editing (reset cleanly on panel change via React key)
-  const [draft, setDraft] = React.useState<MasterPanel>(panel);
-  const [saveSuccess, setSaveSuccess] = React.useState(false);
-  const [collapsedSections, setCollapsedSections] = React.useState<Record<string, boolean>>({});
+  const [draft, setDraft] = useState<MasterPanel>(panel);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const handleRevert = () => {
     setDraft(panel);

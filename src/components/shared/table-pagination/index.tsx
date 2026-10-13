@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { Suspense } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useURLState } from '@/hooks/use-url-state';
 import { cn } from '@/lib/utils';
@@ -141,11 +141,11 @@ function TablePaginationInner({
 /**
  * TablePagination
  * URL-synchronized table pagination controller benchmarking residency-frontend standard.
- * Wrapped in React.Suspense to comply with Next.js App Router static prerendering.
+ * Wrapped in Suspense to comply with Next.js App Router static prerendering.
  */
 export function TablePagination(props: TablePaginationProps) {
   return (
-    <React.Suspense
+    <Suspense
       fallback={
         <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-card/50 text-xs text-muted-foreground h-12">
           <span>Loading pagination...</span>
@@ -153,6 +153,6 @@ export function TablePagination(props: TablePaginationProps) {
       }
     >
       <TablePaginationInner {...props} />
-    </React.Suspense>
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import { Lightbulb, ArrowUpRight, ShieldCheck, Zap } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import type { TestProfitabilityMetric } from '@/features/billing/types';
@@ -11,7 +11,7 @@ interface BreakevenAdvisorCardProps {
 
 export function BreakevenAdvisorCard({ metrics }: BreakevenAdvisorCardProps) {
   // Identify key tests
-  const switchCandidates = React.useMemo(
+  const switchCandidates = useMemo(
     () =>
       metrics.filter(
         (m) =>
@@ -21,7 +21,7 @@ export function BreakevenAdvisorCard({ metrics }: BreakevenAdvisorCardProps) {
     [metrics]
   );
 
-  const outsourcedShields = React.useMemo(
+  const outsourcedShields = useMemo(
     () => metrics.filter((m) => m.strategicRecommendation === 'KEEP_OUTSOURCED'),
     [metrics]
   );

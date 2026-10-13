@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import {
   FileText,
   Clock,
@@ -28,7 +28,7 @@ export function NotificationDetailModal({
   onClose,
   onOpenWhatsApp,
 }: NotificationDetailModalProps) {
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (!log) return null;
 

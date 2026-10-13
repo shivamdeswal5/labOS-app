@@ -1,9 +1,14 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, CheckCircle, QrCode, Banknote, CreditCard } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
-import type { Invoice, PaymentMethod, RecordPaymentDto } from '../types';
+import { settleBillSchema, type SettleBillSchema } from '../schemas/settle-bill.schema';
+import type { Invoice, RecordPaymentDto } from '../types';
 
 interface SettleBillModalProps {
   isOpen: boolean;
@@ -13,28 +18,52 @@ interface SettleBillModalProps {
 }
 
 export function SettleBillModal({ isOpen, invoice, onClose, onSettle }: SettleBillModalProps) {
-  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('UPI');
-  const [notes, setNotes] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<SettleBillSchema>({
+    resolver: zodResolver(settleBillSchema),
+    defaultValues: {
+      paymentMethod: 'UPI',
+      notes: '',
+    },
+  });
+
+  const paymentMethod = watch('paymentMethod');
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        paymentMethod: 'UPI',
+        notes: '',
+      });
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen || !invoice) return null;
 
   const pendingBalance = Math.max(0, invoice.totalAmount - (invoice.paidAmount || 0));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmitHandler = handleSubmit(async (values) => {
     setIsSubmitting(true);
     try {
       await onSettle(invoice.id, {
         amount: pendingBalance,
-        paymentMethod,
-        notes: notes.trim() || undefined,
+        paymentMethod: values.paymentMethod,
+        notes: values.notes?.trim() || undefined,
       });
+      reset();
       onClose();
     } finally {
       setIsSubmitting(false);
     }
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
@@ -62,7 +91,7 @@ export function SettleBillModal({ isOpen, invoice, onClose, onSettle }: SettleBi
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
+        <form onSubmit={onSubmitHandler} noValidate className="p-5 space-y-4 text-xs">
           {/* Patient Context Banner */}
           <div className="p-3 bg-muted/40 rounded-lg border border-border space-y-1">
             <div className="flex items-center justify-between">
@@ -95,7 +124,7 @@ export function SettleBillModal({ isOpen, invoice, onClose, onSettle }: SettleBi
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => setPaymentMethod('UPI')}
+                onClick={() => setValue('paymentMethod', 'UPI', { shouldValidate: true })}
                 className={`py-2 px-2 rounded-md border text-xs font-medium inline-flex flex-col items-center justify-center gap-1 transition-colors ${
                   paymentMethod === 'UPI'
                     ? 'bg-primary text-primary-foreground border-primary font-semibold'
@@ -107,7 +136,7 @@ export function SettleBillModal({ isOpen, invoice, onClose, onSettle }: SettleBi
               </button>
               <button
                 type="button"
-                onClick={() => setPaymentMethod('CASH')}
+                onClick={() => setValue('paymentMethod', 'CASH', { shouldValidate: true })}
                 className={`py-2 px-2 rounded-md border text-xs font-medium inline-flex flex-col items-center justify-center gap-1 transition-colors ${
                   paymentMethod === 'CASH'
                     ? 'bg-primary text-primary-foreground border-primary font-semibold'
@@ -119,7 +148,7 @@ export function SettleBillModal({ isOpen, invoice, onClose, onSettle }: SettleBi
               </button>
               <button
                 type="button"
-                onClick={() => setPaymentMethod('CARD')}
+                onClick={() => setValue('paymentMethod', 'CARD', { shouldValidate: true })}
                 className={`py-2 px-2 rounded-md border text-xs font-medium inline-flex flex-col items-center justify-center gap-1 transition-colors ${
                   paymentMethod === 'CARD'
                     ? 'bg-primary text-primary-foreground border-primary font-semibold'
@@ -139,11 +168,16 @@ export function SettleBillModal({ isOpen, invoice, onClose, onSettle }: SettleBi
             </label>
             <input
               type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              {...register('notes')}
               placeholder="e.g. UTR #4829104810 or Corporate Receipt Voucher"
-              className="w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className={cn(
+                'w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                errors.notes && 'border-destructive'
+              )}
             />
+            {errors.notes && (
+              <p className="text-[11px] text-destructive mt-1">{errors.notes.message}</p>
+            )}
           </div>
 
           {/* Footer */}

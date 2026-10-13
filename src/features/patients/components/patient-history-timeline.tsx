@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   FileText,
@@ -40,7 +40,7 @@ function getParameterDisplayName(parameterId?: string, name?: string): string {
 }
 
 export function PatientHistoryTimeline({ patient, reports }: PatientHistoryTimelineProps) {
-  const [selectedReportForWhatsApp, setSelectedReportForWhatsApp] = React.useState<DetailedReport | null>(null);
+  const [selectedReportForWhatsApp, setSelectedReportForWhatsApp] = useState<DetailedReport | null>(null);
 
   return (
     <div className="flex flex-col gap-3">

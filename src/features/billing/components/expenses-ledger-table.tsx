@@ -1,8 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Search } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
+import { cn } from '@/lib/utils';
+import { expenseSchema, type ExpenseSchema } from '../schemas/expense.schema';
 import type { Expense, ExpenseCategory, ExpenseFilter, PaymentMethod, CreateExpenseDto } from '../types';
 
 interface ExpensesLedgerTableProps {
@@ -21,36 +25,48 @@ export function ExpensesLedgerTable({
   isLoading,
 }: ExpensesLedgerTableProps) {
   // Quick Log State
-  const [category, setCategory] = React.useState<ExpenseCategory>('REAGENTS');
-  const [title, setTitle] = React.useState('');
-  const [amount, setAmount] = React.useState('');
-  const [expenseDate, setExpenseDate] = React.useState(() => new Date().toISOString().split('T')[0]);
-  const [vendor, setVendor] = React.useState('');
-  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('NET_BANKING');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleQuickSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !amount || Number(amount) <= 0) return;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ExpenseSchema>({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
+      category: 'REAGENTS',
+      title: '',
+      vendor: '',
+      amount: '' as unknown as number,
+      paymentMethod: 'NET_BANKING',
+      expenseDate: new Date().toISOString().split('T')[0],
+    },
+  });
 
+  const handleQuickSubmit = handleSubmit(async (values) => {
     setIsSubmitting(true);
     try {
       await onCreateExpense({
-        category,
-        title: title.trim(),
-        amount: Number(amount),
-        expenseDate,
-        paymentMethod,
-        vendor: vendor.trim() || undefined,
+        category: values.category,
+        title: values.title.trim(),
+        amount: Number(values.amount),
+        expenseDate: values.expenseDate,
+        paymentMethod: values.paymentMethod,
+        vendor: values.vendor?.trim() || undefined,
       });
-      // Reset form
-      setTitle('');
-      setAmount('');
-      setVendor('');
+      reset({
+        category: 'REAGENTS',
+        title: '',
+        vendor: '',
+        amount: '' as unknown as number,
+        paymentMethod: 'NET_BANKING',
+        expenseDate: new Date().toISOString().split('T')[0],
+      });
     } finally {
       setIsSubmitting(false);
     }
-  };
+  });
 
   const getCategoryBadge = (cat: ExpenseCategory, label?: string) => {
     const text = label || cat;
@@ -113,14 +129,13 @@ export function ExpensesLedgerTable({
           <span>Quick Log Operational Expense</span>
         </div>
 
-        <form onSubmit={handleQuickSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
+        <form onSubmit={handleQuickSubmit} noValidate className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
           <div className="lg:col-span-3">
             <label className="block text-[11px] font-medium text-muted-foreground mb-1">
               Category
             </label>
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
+              {...register('category')}
               className="w-full h-8 px-2 text-xs bg-muted/30 border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="REAGENTS">Reagents & Kits</option>
@@ -135,16 +150,20 @@ export function ExpensesLedgerTable({
 
           <div className="lg:col-span-3">
             <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-              Description
+              Description <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              {...register('title')}
               placeholder="e.g. Cobas c501 Creatinine Reagent"
-              className="w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className={cn(
+                'w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                errors.title && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors.title && (
+              <p className="text-[10px] text-destructive mt-0.5">{errors.title.message}</p>
+            )}
           </div>
 
           <div className="lg:col-span-2">
@@ -153,26 +172,35 @@ export function ExpensesLedgerTable({
             </label>
             <input
               type="text"
-              value={vendor}
-              onChange={(e) => setVendor(e.target.value)}
+              {...register('vendor')}
               placeholder="e.g. Transasia Bio"
-              className="w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className={cn(
+                'w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                errors.vendor && 'border-destructive'
+              )}
             />
+            {errors.vendor && (
+              <p className="text-[10px] text-destructive mt-0.5">{errors.vendor.message}</p>
+            )}
           </div>
 
           <div className="lg:col-span-2">
             <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-              Amount (₹)
+              Amount (₹) <span className="text-destructive">*</span>
             </label>
             <input
               type="number"
-              required
-              min="1"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              step="any"
+              {...register('amount')}
               placeholder="0.00"
-              className="w-full h-8 px-2.5 text-xs font-mono bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className={cn(
+                'w-full h-8 px-2.5 text-xs font-mono bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                errors.amount && 'border-destructive focus:ring-destructive'
+              )}
             />
+            {errors.amount && (
+              <p className="text-[10px] text-destructive mt-0.5">{errors.amount.message}</p>
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -180,8 +208,7 @@ export function ExpensesLedgerTable({
               Mode
             </label>
             <select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              {...register('paymentMethod')}
               className="w-full h-8 px-1 text-xs bg-muted/30 border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="NET_BANKING">NEFT</option>
@@ -198,10 +225,15 @@ export function ExpensesLedgerTable({
             </label>
             <input
               type="date"
-              value={expenseDate}
-              onChange={(e) => setExpenseDate(e.target.value)}
-              className="w-full h-8 px-1 text-xs bg-muted/30 border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+              {...register('expenseDate')}
+              className={cn(
+                'w-full h-8 px-1 text-xs bg-muted/30 border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono',
+                errors.expenseDate && 'border-destructive'
+              )}
             />
+            {errors.expenseDate && (
+              <p className="text-[10px] text-destructive mt-0.5">{errors.expenseDate.message}</p>
+            )}
           </div>
 
           <div className="lg:col-span-1 flex items-center gap-1.5">

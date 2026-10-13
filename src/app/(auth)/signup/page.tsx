@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { FlaskConical } from 'lucide-react';
 import { SignupForm } from '@/features/auth/components/signup-form';
@@ -26,7 +27,10 @@ export default function SignupPage() {
         </p>
       </div>
 
-      <SignupForm />
+      <Suspense fallback={<div className="h-64 animate-pulse bg-muted/20 rounded-xl" />}>
+        <SignupForm />
+      </Suspense>
     </>
   );
 }
+

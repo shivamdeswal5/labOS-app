@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   Receipt,
   ArrowDownToLine,
@@ -46,10 +46,10 @@ export default function BillingPage() {
   const canViewPnL = can('BILLING:PNL_VIEW');
   const isAuthorized = hasRole('OWNER', 'TECHNICIAN');
 
-  const [selectedTab, setSelectedTab] = React.useState<'invoices' | 'expenses' | 'profitability'>('invoices');
+  const [selectedTab, setSelectedTab] = useState<'invoices' | 'expenses' | 'profitability'>('invoices');
 
   // Derive effective active tab based on permissions with zero cascading renders
-  const activeTab: 'invoices' | 'expenses' | 'profitability' = React.useMemo(() => {
+  const activeTab: 'invoices' | 'expenses' | 'profitability' = useMemo(() => {
     if (selectedTab === 'expenses' && !canViewExpenses) return 'invoices';
     if (selectedTab === 'profitability' && !canViewPnL) return 'invoices';
     return selectedTab;
@@ -60,21 +60,21 @@ export default function BillingPage() {
   };
 
   // Filters
-  const [invoiceFilter, setInvoiceFilter] = React.useState<InvoiceFilter>({
+  const [invoiceFilter, setInvoiceFilter] = useState<InvoiceFilter>({
     status: 'ALL',
     paymentMethod: 'ALL',
     search: '',
   });
-  const [expenseFilter, setExpenseFilter] = React.useState<ExpenseFilter>({
+  const [expenseFilter, setExpenseFilter] = useState<ExpenseFilter>({
     category: 'ALL',
     search: '',
   });
 
   // Modals state
-  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = React.useState(false);
-  const [settlingInvoice, setSettlingInvoice] = React.useState<Invoice | null>(null);
-  const [receiptInvoice, setReceiptInvoice] = React.useState<Invoice | null>(null);
-  const [exportFeedback, setExportFeedback] = React.useState<string | null>(null);
+  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [settlingInvoice, setSettlingInvoice] = useState<Invoice | null>(null);
+  const [receiptInvoice, setReceiptInvoice] = useState<Invoice | null>(null);
+  const [exportFeedback, setExportFeedback] = useState<string | null>(null);
 
   // Queries
   const { data: summary, isLoading: isSummaryLoading } = useFinancialSummary();

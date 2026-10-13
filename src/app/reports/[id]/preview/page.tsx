@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { use, useState } from 'react';
 import {
   AlertCircle,
   FileCheck,
@@ -24,7 +24,7 @@ interface PageProps {
 }
 
 export default function ReportPreviewPage({ params }: PageProps) {
-  const resolvedParams = React.use(params);
+  const resolvedParams = use(params);
   const reportId = resolvedParams.id;
 
   const { data: report, isLoading, isError, error, refetch } = useReport(reportId);
@@ -37,11 +37,11 @@ export default function ReportPreviewPage({ params }: PageProps) {
   const savedFooterMargin: number = labProfile?.printSettings?.footerMarginMm ?? 24;
 
   // Local interactive calibration state
-  const [selectedStationery, setSelectedStationery] = React.useState<StationeryType | null>(null);
-  const [customHeaderMargin, setCustomHeaderMargin] = React.useState<number | null>(null);
-  const [customFooterMargin, setCustomFooterMargin] = React.useState<number | null>(null);
-  const [simulateBlankStationery, setSimulateBlankStationery] = React.useState(true);
-  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const [selectedStationery, setSelectedStationery] = useState<StationeryType | null>(null);
+  const [customHeaderMargin, setCustomHeaderMargin] = useState<number | null>(null);
+  const [customFooterMargin, setCustomFooterMargin] = useState<number | null>(null);
+  const [simulateBlankStationery, setSimulateBlankStationery] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Derived effective values
   const activeStationery = selectedStationery ?? savedStationery;

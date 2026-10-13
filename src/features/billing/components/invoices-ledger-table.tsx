@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type ChangeEvent } from 'react';
 import {
   Search,
   QrCode,
@@ -31,9 +31,9 @@ export function InvoicesLedgerTable({
   onSettleInvoice,
   isLoading,
 }: InvoicesLedgerTableProps) {
-  const [searchTerm, setSearchTerm] = React.useState(filter.search || '');
+  const [searchTerm, setSearchTerm] = useState(filter.search || '');
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearchTerm(val);
     onFilterChange({ ...filter, search: val });

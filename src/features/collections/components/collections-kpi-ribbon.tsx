@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Calendar, UserCheck, Snowflake, CheckCircle2 } from 'lucide-react';
 import type { CollectionsKpiSummary } from '../types';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useMemo, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   Save,
   CheckCheck,
@@ -40,10 +40,10 @@ export function ResultEntryForm({
   const patientSex = report.patient?.sex;
 
   // Input refs array for high-speed arrow / Enter navigation
-  const inputRefs = React.useRef<(HTMLInputElement | HTMLSelectElement | null)[]>([]);
+  const inputRefs = useRef<(HTMLInputElement | HTMLSelectElement | null)[]>([]);
 
   // Count total and entered parameters for clinical validation and progress feedback
-  const totalParameters = React.useMemo(() => {
+  const totalParameters = useMemo(() => {
     return (
       report.reportPanels?.reduce((sum, rp) => {
         return (
@@ -54,7 +54,7 @@ export function ResultEntryForm({
     );
   }, [report.reportPanels]);
 
-  const enteredCount = React.useMemo(() => {
+  const enteredCount = useMemo(() => {
     return Object.values(values).filter((v) => typeof v === 'string' && v.trim().length > 0).length;
   }, [values]);
 
@@ -65,7 +65,7 @@ export function ResultEntryForm({
 
   // Global document-level keyboard shortcuts with capture: true
   // Prevents browser native shortcuts like "Save Page As..." (Ctrl+S) from downloading HTML
-  React.useEffect(() => {
+  useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       // Global Save shortcut: Ctrl+S / Cmd+S
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
@@ -91,7 +91,7 @@ export function ResultEntryForm({
   }, [isFinalized, isSaving, isFinalizing, enteredCount, hasAnyResults, canFinalize, onSaveDraft, onFinalize]);
 
   // Enter key advances to next parameter field
-  const handleInputKeyDown = (e: React.KeyboardEvent, index: number) => {
+  const handleInputKeyDown = (e: ReactKeyboardEvent, index: number) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const nextInput = inputRefs.current[index + 1];

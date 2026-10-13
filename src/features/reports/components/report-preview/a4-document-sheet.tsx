@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import { ShieldCheck, AlertCircle, Truck } from 'lucide-react';
 import { formatDateTime } from '@/lib/formatters';
 import { useLabProfile, useStaffMembers } from '@/features/settings/api/use-settings';
@@ -72,7 +72,7 @@ export function A4DocumentSheet({
   );
 
   // Map values by parameterId
-  const valuesMap = React.useMemo(() => {
+  const valuesMap = useMemo(() => {
     const map: Record<string, { value: string; isOutOfRange?: boolean; remarks?: string | null }> = {};
     report.values?.forEach((v) => {
       map[v.parameterId] = {

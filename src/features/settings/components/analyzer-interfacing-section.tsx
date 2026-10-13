@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Terminal, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -61,8 +61,8 @@ const PACKET_FRAMES = [
 ];
 
 export function AnalyzerInterfacingSection() {
-  const [autoQuery, setAutoQuery] = React.useState(true);
-  const [logs] = React.useState(PACKET_FRAMES);
+  const [autoQuery, setAutoQuery] = useState(true);
+  const [logs] = useState(PACKET_FRAMES);
 
   return (
     <div className="space-y-6">

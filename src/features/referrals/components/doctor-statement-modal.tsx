@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect } from 'react';
 import {
   Printer,
   Download,
@@ -27,7 +27,7 @@ export function DoctorStatementModal({
 }: DoctorStatementModalProps) {
   const { data: labProfile } = useLabProfile();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();

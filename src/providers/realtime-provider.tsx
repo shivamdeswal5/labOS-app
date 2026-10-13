@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -29,33 +29,40 @@ interface RealtimeContextType {
   unreadCount: number;
 }
 
-const RealtimeContext = React.createContext<RealtimeContextType | undefined>(undefined);
+const RealtimeContext = createContext<RealtimeContextType | undefined>(undefined);
 
 interface RealtimeProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function RealtimeProvider({ children }: RealtimeProviderProps) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = React.useState<RealtimeConnectionStatus>('CONNECTING');
-  const [lastMessage, setLastMessage] = React.useState<EventMessage | null>(null);
-  const [events, setEvents] = React.useState<EventMessage[]>([]);
-  const [toasts, setToasts] = React.useState<RealtimeToastAlert[]>([]);
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(0);
-  const socketRef = React.useRef<Socket | null>(null);
+  const [status, setStatus] = useState<RealtimeConnectionStatus>('CONNECTING');
+  const [lastMessage, setLastMessage] = useState<EventMessage | null>(null);
+  const [events, setEvents] = useState<EventMessage[]>([]);
+  const [toasts, setToasts] = useState<RealtimeToastAlert[]>([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const socketRef = useRef<Socket | null>(null);
 
-  const dismissToast = React.useCallback((id: string) => {
+  const handleSetIsDrawerOpen = useCallback((open: boolean) => {
+    setIsDrawerOpen(open);
+    if (open) {
+      setUnreadCount(0);
+    }
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const clearEvents = React.useCallback(() => {
+  const clearEvents = useCallback(() => {
     setEvents([]);
     setUnreadCount(0);
   }, []);
 
   // Process incoming CloudEvent
-  const handleIncomingMessage = React.useCallback(
+  const handleIncomingMessage = useCallback(
     (message: EventMessage) => {
       setLastMessage(message);
       setEvents((prev) => [message, ...prev.slice(0, 49)]); // Keep last 50
@@ -146,7 +153,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   );
 
   // Simulation engine for pitch demos & offline testing
-  const simulateEvent = React.useCallback(
+  const simulateEvent = useCallback(
     (event: RealtimeChannelEnum, customPayload?: unknown) => {
       const traceId = `sim-trace-${Date.now().toString(36)}`;
       const timestamp = new Date().toISOString();
@@ -218,7 +225,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   );
 
   // Initialize Socket.IO connection
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
 
@@ -281,7 +288,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
     };
   }, [handleIncomingMessage]);
 
-  const value = React.useMemo(
+  const value = useMemo(
     () => ({
       status,
       lastMessage,
@@ -291,7 +298,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
       clearEvents,
       simulateEvent,
       isDrawerOpen,
-      setIsDrawerOpen,
+      setIsDrawerOpen: handleSetIsDrawerOpen,
       unreadCount,
     }),
     [
@@ -303,6 +310,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
       clearEvents,
       simulateEvent,
       isDrawerOpen,
+      handleSetIsDrawerOpen,
       unreadCount,
     ],
   );
@@ -379,7 +387,7 @@ const FALLBACK_REALTIME_CONTEXT: RealtimeContextType = {
 };
 
 export function useRealtime() {
-  const context = React.useContext(RealtimeContext);
+  const context = useContext(RealtimeContext);
   if (!context) {
     return FALLBACK_REALTIME_CONTEXT;
   }

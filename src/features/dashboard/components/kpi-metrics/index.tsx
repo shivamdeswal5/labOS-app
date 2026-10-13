@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import Link from 'next/link';
 import { TrendingUp, Users, Clock, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';

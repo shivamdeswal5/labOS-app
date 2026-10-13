@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { Search, CheckSquare, Square, Clock, TestTube, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePanels } from '../../api/use-panels';
@@ -18,20 +18,20 @@ export function PanelSelectorSection({
   onTogglePanel,
   error,
 }: PanelSelectorSectionProps) {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCategory, setSelectedCategory] = React.useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const { data: serverPanels, isLoading } = usePanels();
 
   const panels = serverPanels && serverPanels.length > 0 ? serverPanels : DEMO_TEST_PANELS;
 
   // Extract unique categories
-  const categories = React.useMemo(() => {
+  const categories = useMemo(() => {
     const cats = new Set(panels.map((p) => p.category));
     return ['All', ...Array.from(cats)];
   }, [panels]);
 
   // Filter panels
-  const filteredPanels = React.useMemo(() => {
+  const filteredPanels = useMemo(() => {
     return panels.filter((panel) => {
       const matchesCategory =
         selectedCategory === 'All' || panel.category === selectedCategory;

@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Clock, Check, CheckCheck, AlertCircle } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import type { NotificationStatus } from '../../types';

@@ -1,7 +1,7 @@
-import * as React from 'react';
+import type { SVGProps } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface PathiqLogoProps extends React.SVGProps<SVGSVGElement> {
+export interface PathiqLogoProps extends SVGProps<SVGSVGElement> {
   variant?: 'full' | 'icon';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;

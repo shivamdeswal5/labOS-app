@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 
@@ -28,18 +28,18 @@ interface AuthContextValue {
   isLoading: boolean;
 }
 
-const AuthContext = React.createContext<AuthContextValue>({
+const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   isLoading: true,
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<User | null>(null);
-  const [session, setSession] = React.useState<Session | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
 
     // Helper to verify if the authenticated user has an active lab
@@ -55,6 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profile = await api.get<{ labId?: string | null }>('/labs/me');
         if (profile?.labId) {
           setLabIdCookie(true);
+          if (
+            typeof window !== 'undefined' &&
+            window.location.pathname.startsWith('/onboarding')
+          ) {
+            window.location.href = '/';
+          }
         } else {
           clearLabIdCookie();
           if (
@@ -132,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuthContext(): AuthContextValue {
-  const ctx = React.useContext(AuthContext);
+  const ctx = useContext(AuthContext);
   if (ctx === undefined) {
     throw new Error('useAuthContext must be used within <AuthProvider>');
   }

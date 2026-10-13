@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { Printer, Tag, X } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,9 @@ export function ThermalStickerModal({
   panelNames = [],
   tubeType = 'EDTA',
 }: ThermalStickerModalProps) {
-  const [selectedTube, setSelectedTube] = React.useState(tubeType);
+  const [selectedTube, setSelectedTube] = useState(tubeType);
 
-  const tubeConfig = React.useMemo(() => {
+  const tubeConfig = useMemo(() => {
     switch (selectedTube) {
       case 'EDTA':
         return { label: 'EDTA LAVENDER', colorClass: 'bg-purple-100 text-purple-900 border-purple-300' };
@@ -46,7 +46,7 @@ export function ThermalStickerModal({
     }
   }, [selectedTube]);
 
-  const testAcronyms = React.useMemo(() => {
+  const testAcronyms = useMemo(() => {
     if (panelNames.length === 0) return 'CBC / ROUTINE';
     return panelNames
       .map((p) => {

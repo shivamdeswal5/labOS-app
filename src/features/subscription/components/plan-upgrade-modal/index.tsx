@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { usePublicPlansQuery, useTenantSubscriptionQuery, useCreateSubscriptionOrderMutation } from '../../api/subscription.queries';
 import { BillingToggle } from './_components/billing-toggle';
@@ -20,12 +20,12 @@ export function PlanUpgradeModal({ isOpen, onClose, defaultPlanSlug }: PlanUpgra
   const { data: subscription } = useTenantSubscriptionQuery();
   const createOrderMutation = useCreateSubscriptionOrderMutation();
 
-  const [cycle, setCycle] = React.useState<BillingCycle>('MONTHLY');
-  const [userSelectedPlanId, setUserSelectedPlanId] = React.useState<string | null>(null);
-  const [checkoutError, setCheckoutError] = React.useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = React.useState<boolean>(false);
+  const [cycle, setCycle] = useState<BillingCycle>('MONTHLY');
+  const [userSelectedPlanId, setUserSelectedPlanId] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  const defaultPlan = React.useMemo(() => {
+  const defaultPlan = useMemo(() => {
     if (plans.length === 0) return null;
     if (defaultPlanSlug) {
       return plans.find((p) => p.slug === defaultPlanSlug) || plans[0];

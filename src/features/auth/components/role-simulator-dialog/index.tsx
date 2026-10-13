@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import type { ComponentType } from 'react';
 import { Check, Shield, Stethoscope, FlaskConical, Truck, RotateCcw } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ interface RoleSimulatorDialogProps {
   onClose: () => void;
 }
 
-const PERSONA_ICONS: Record<AppRole, React.ComponentType<{ className?: string }>> = {
+const PERSONA_ICONS: Record<AppRole, ComponentType<{ className?: string }>> = {
   OWNER: Shield,
   PATHOLOGIST: Stethoscope,
   TECHNICIAN: FlaskConical,

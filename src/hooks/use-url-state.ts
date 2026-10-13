@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import * as React from 'react';
+import { useCallback } from 'react';
 
 /**
  * useURLState
@@ -13,14 +13,14 @@ export function useURLState() {
   const pathname = usePathname();
   const { replace, push } = useRouter();
 
-  const getParam = React.useCallback(
+  const getParam = useCallback(
     (key: string, defaultValue = ''): string => {
       return searchParams?.get(key) ?? defaultValue;
     },
     [searchParams],
   );
 
-  const getNumberParam = React.useCallback(
+  const getNumberParam = useCallback(
     (key: string, defaultValue = 0): number => {
       const val = searchParams?.get(key);
       if (val === null || val === undefined) return defaultValue;
@@ -30,7 +30,7 @@ export function useURLState() {
     [searchParams],
   );
 
-  const setParams = React.useCallback(
+  const setParams = useCallback(
     (
       paramsToSet: Record<string, string | number | boolean | null | undefined>,
       options?: { scroll?: boolean },

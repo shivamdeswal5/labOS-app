@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { Fragment, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
@@ -15,12 +15,12 @@ export interface BreadcrumbItem {
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   backHref?: string;
   onBack?: () => void;
-  actions?: React.ReactNode;
-  badge?: React.ReactNode;
+  actions?: ReactNode;
+  badge?: ReactNode;
   className?: string;
 }
 
@@ -65,7 +65,7 @@ export function PageHeader({
           {breadcrumbs.map((crumb, idx) => {
             const isLast = idx === breadcrumbs.length - 1;
             return (
-              <React.Fragment key={crumb.label}>
+              <Fragment key={crumb.label}>
                 <ChevronRight className="w-3 h-3 text-muted-foreground/60 shrink-0" />
                 {crumb.href && !isLast ? (
                   <Link href={crumb.href} className="hover:text-foreground transition-colors">
@@ -74,7 +74,7 @@ export function PageHeader({
                 ) : (
                   <span className={cn(isLast && 'text-foreground font-medium')}>{crumb.label}</span>
                 )}
-              </React.Fragment>
+              </Fragment>
             );
           })}
         </nav>

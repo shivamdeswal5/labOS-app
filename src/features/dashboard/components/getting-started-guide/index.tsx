@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2,
@@ -25,7 +25,7 @@ interface GettingStartedGuideProps {
 }
 
 export function GettingStartedGuide({ profile, stats }: GettingStartedGuideProps) {
-  const [isDismissed, setIsDismissed] = React.useState(() => {
+  const [isDismissed, setIsDismissed] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
       return localStorage.getItem('labos_setup_guide_dismissed') === 'true';
@@ -33,7 +33,7 @@ export function GettingStartedGuide({ profile, stats }: GettingStartedGuideProps
       return false;
     }
   });
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleDismiss = () => {
     setIsDismissed(true);

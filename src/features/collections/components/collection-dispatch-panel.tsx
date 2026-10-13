@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import type {
   CollectionRequest,
   CollectionStatus,
@@ -34,15 +34,15 @@ export function CollectionDispatchPanel({
   onCancelClick,
   isUpdating = false,
 }: CollectionDispatchPanelProps) {
-  const [addedSamples, setAddedSamples] = React.useState<CollectionSample[]>([]);
-  const [prevCollectionId, setPrevCollectionId] = React.useState(collection.id);
+  const [addedSamples, setAddedSamples] = useState<CollectionSample[]>([]);
+  const [prevCollectionId, setPrevCollectionId] = useState(collection.id);
 
   if (collection.id !== prevCollectionId) {
     setPrevCollectionId(collection.id);
     setAddedSamples([]);
   }
 
-  const allSamples = React.useMemo(() => {
+  const allSamples = useMemo(() => {
     return [...collection.samples, ...addedSamples];
   }, [collection.samples, addedSamples]);
 

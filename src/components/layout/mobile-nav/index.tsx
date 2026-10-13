@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, User } from 'lucide-react';
@@ -22,13 +22,13 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   const labName = labProfile?.name || 'LabOS Station';
   const nablText = labProfile?.nablId ? `NABL: ${labProfile.nablId}` : 'NABL Standard Compliant';
 
-  const visibleNavItems = React.useMemo(() => {
+  const visibleNavItems = useMemo(() => {
     return NAV_ITEMS.filter((item) => canAccessRoute(item.href));
   }, [canAccessRoute]);
 
   // Auto-close ONLY when route actually changes
-  const prevPathname = React.useRef(pathname);
-  React.useEffect(() => {
+  const prevPathname = useRef(pathname);
+  useEffect(() => {
     if (prevPathname.current !== pathname) {
       prevPathname.current = pathname;
       onClose();

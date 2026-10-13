@@ -20,12 +20,14 @@ import { NextResponse, type NextRequest } from 'next/server';
  *   (onboarding itself is excluded from this check to prevent redirect loops)
  */
 
-const PUBLIC_ROUTES = ['/login', '/signup'];
+const PUBLIC_ROUTES = ['/login', '/signup', '/auth/callback', '/site.webmanifest'];
 const PUBLIC_PREFIX = '/v/'; // Public patient portal
 
 function isPublicRoute(pathname: string): boolean {
   return (
-    PUBLIC_ROUTES.includes(pathname) || pathname.startsWith(PUBLIC_PREFIX)
+    PUBLIC_ROUTES.includes(pathname) ||
+    pathname.startsWith(PUBLIC_PREFIX) ||
+    pathname.endsWith('.webmanifest')
   );
 }
 
@@ -68,47 +70,22 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isPublic = isPublicRoute(pathname);
-  const isOnboarding = pathname === '/onboarding';
-  const hasConfirmedLab = request.cookies.get('x-lab-id')?.value === 'confirmed';
-
-  // Authentication is determined solely by the Supabase JWT user object.
-  // The x-lab-id cookie is ONLY used as the lab-onboarding confirmation signal —
-  // NOT as an authentication signal. This separation prevents two bugs:
-  //   (a) An expired x-lab-id cookie (e.g. after a week) would previously cause
-  //       Rule 3 to fire for authenticated + onboarded users, bouncing them to /onboarding.
-  //   (b) Using `user || hasConfirmedLab` allowed the cookie alone to bypass auth
-  //       checks, which is a security smell.
   const isAuthenticated = Boolean(user);
+  const isSwitchingAccount = request.nextUrl.searchParams.get('switch') === 'true';
 
-  // Rule 1: Authenticated user hitting /login or /signup → dashboard
-  if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
+  // Rule 1: Authenticated user hitting /login or /signup → redirect to dashboard
+  // Exception: Allow ?switch=true so authenticated users can view the login form to switch accounts.
+  if (isAuthenticated && (pathname === '/login' || pathname === '/signup') && !isSwitchingAccount) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = '/';
     return NextResponse.redirect(dashboardUrl);
   }
 
-  // Rule 2: Unauthenticated user hitting any non-public route (including /onboarding) → /login
+  // Rule 2: Unauthenticated user hitting any non-public route (including /onboarding) → redirect to /login
   if (!isAuthenticated && !isPublic) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     return NextResponse.redirect(loginUrl);
-  }
-
-  // Rule 3: Authenticated user whose lab-onboarding confirmation cookie has NOT been set → /onboarding.
-  // The AuthProvider (auth-provider.tsx) re-validates this by calling GET /labs/me on mount
-  // and re-sets the cookie with a 30-day max-age, so this should only fire for genuinely
-  // un-onboarded users (brand new signups), not returning users with an expired cookie.
-  if (isAuthenticated && !hasConfirmedLab && !isOnboarding && !isPublic) {
-    const onboardingUrl = request.nextUrl.clone();
-    onboardingUrl.pathname = '/onboarding';
-    return NextResponse.redirect(onboardingUrl);
-  }
-
-  // Rule 4: Authenticated + onboarded user hitting /onboarding → dashboard
-  if (isAuthenticated && hasConfirmedLab && isOnboarding) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = '/';
-    return NextResponse.redirect(dashboardUrl);
   }
 
   return supabaseResponse;
@@ -121,8 +98,8 @@ export const config = {
      * - _next/static  (static files)
      * - _next/image   (Next.js image optimization)
      * - favicon.ico   (favicon)
-     * - *.{svg,png,jpg,jpeg,gif,webp} (static image assets)
+     * - *.{svg,png,jpg,jpeg,gif,webp,webmanifest} (static image & manifest assets)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest)$).*)',
   ],
 };

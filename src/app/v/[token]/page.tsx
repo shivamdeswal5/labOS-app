@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { use, useState } from 'react';
 import {
   ShieldCheck,
   Download,
@@ -20,14 +20,14 @@ interface PublicPortalProps {
 }
 
 export default function PublicPatientPortalPage({ params }: PublicPortalProps) {
-  const resolvedParams = React.use(params);
+  const resolvedParams = use(params);
   const token = resolvedParams.token;
 
   const { data: report, isLoading, isError, error, refetch } = useSharedReport(token);
   const { data: labProfile } = useLabProfile();
   const labName = labProfile?.name || 'Diagnostic Laboratory';
   const initial = labName.charAt(0).toUpperCase() || 'L';
-  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownloadPdf = async () => {
     if (!report) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { PanelsHeader } from '@/features/panels/components/panels-header';
 import { PanelsDirectoryList } from '@/features/panels/components/panels-directory-list';
@@ -17,18 +17,18 @@ import { AccessDeniedView } from '@/features/auth/components/access-denied';
 import type { MasterPanel } from '@/features/panels/types';
 
 export default function PanelsPage() {
-  const [selectedCategory, setSelectedCategory] = React.useState('All');
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedPanelId, setSelectedPanelId] = React.useState<string>(DEMO_MASTER_PANELS[0].id);
-  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
-  const [activeMobileView, setActiveMobileView] = React.useState<'list' | 'editor'>('list');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPanelId, setSelectedPanelId] = useState<string>(DEMO_MASTER_PANELS[0].id);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [activeMobileView, setActiveMobileView] = useState<'list' | 'editor'>('list');
 
   const { data: panels = DEMO_MASTER_PANELS, isLoading } = usePanelsCatalog(selectedCategory);
   const createPanelMutation = useCreatePanel();
   const updatePanelMutation = useUpdatePanel();
 
   // Filter panels by search query
-  const filteredPanels = React.useMemo(() => {
+  const filteredPanels = useMemo(() => {
     return panels.filter((panel) => {
       const matchesSearch =
         panel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -39,7 +39,7 @@ export default function PanelsPage() {
   }, [panels, searchQuery]);
 
   // Selected panel details
-  const selectedPanel = React.useMemo(() => {
+  const selectedPanel = useMemo(() => {
     return panels.find((p) => p.id === selectedPanelId) || panels[0] || DEMO_MASTER_PANELS[0];
   }, [panels, selectedPanelId]);
 

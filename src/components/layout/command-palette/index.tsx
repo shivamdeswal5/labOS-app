@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Command } from 'cmdk';
 import {
@@ -24,7 +24,7 @@ interface CommandPaletteProps {
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();

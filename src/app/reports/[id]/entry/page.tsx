@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { use, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
@@ -45,7 +45,7 @@ function ResultEntryWorkspace({ report }: { report: DetailedReport }) {
   const finalizeReportMutation = useFinalizeReport(report.id);
 
   // Initialize values directly from loaded report data (pre-populate previously saved values)
-  const [values, setValues] = React.useState<Record<string, string>>(() => {
+  const [values, setValues] = useState<Record<string, string>>(() => {
     const initialMap: Record<string, string> = {};
     report.values?.forEach((v) => {
       initialMap[v.parameterId] = v.value;
@@ -53,13 +53,13 @@ function ResultEntryWorkspace({ report }: { report: DetailedReport }) {
     return initialMap;
   });
 
-  const [remarks, setRemarks] = React.useState<string>(report.remarks || '');
-  const [activeTab, setActiveTab] = React.useState<'form' | 'preview'>('form');
-  const [toastMessage, setToastMessage] = React.useState<{
+  const [remarks, setRemarks] = useState<string>(report.remarks || '');
+  const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
+  const [toastMessage, setToastMessage] = useState<{
     text: string;
     type: 'success' | 'error';
   } | null>(null);
-  const [showFinalizeDialog, setShowFinalizeDialog] = React.useState(false);
+  const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
 
   const showToast = (text: string, type: 'success' | 'error', durationMs = 4000) => {
     setToastMessage({ text, type });
@@ -79,7 +79,7 @@ function ResultEntryWorkspace({ report }: { report: DetailedReport }) {
    * This prevents sending empty strings to the backend which would fail
    * class-validator @IsNotEmpty() validation on ResultValueDto.value.
    */
-  const getValidPayloadValues = React.useCallback(() => {
+  const getValidPayloadValues = useCallback(() => {
     return Object.entries(values)
       .filter(([, val]) => typeof val === 'string' && val.trim().length > 0)
       .map(([parameterId, val]) => ({
@@ -369,7 +369,7 @@ function ResultEntryWorkspace({ report }: { report: DetailedReport }) {
 }
 
 export default function ReportResultEntryPage({ params }: PageProps) {
-  const resolvedParams = React.use(params);
+  const resolvedParams = use(params);
   const reportId = resolvedParams.id;
 
   const { data: report, isLoading, isError, error, refetch } = useReport(reportId);

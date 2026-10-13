@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { FlaskConical } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import type { LabCommissionSummary } from '../types';

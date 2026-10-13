@@ -1,14 +1,14 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  children: React.ReactNode;
+  title?: ReactNode;
+  description?: ReactNode;
+  children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   className?: string;
   showCloseButton?: boolean;
@@ -34,7 +34,7 @@ export function Modal({
   showCloseButton = true,
 }: ModalProps) {
   // Handle Escape key
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,7 +48,7 @@ export function Modal({
   }, [isOpen, onClose]);
 
   // Lock body scroll while open
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
 
     const originalOverflow = document.body.style.overflow;

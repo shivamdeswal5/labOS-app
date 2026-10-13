@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import {
   Copy,
   Check,
@@ -51,18 +51,18 @@ export function SendWhatsAppModal({
   const labName = labProfile?.name || 'Deswal Clinical Laboratory';
   const patient = report.patient;
   const patientName = patient?.name || 'Patient';
-  const [userEditedPhone, setUserEditedPhone] = React.useState<string | null>(null);
+  const [userEditedPhone, setUserEditedPhone] = useState<string | null>(null);
   const phoneInput = userEditedPhone !== null ? userEditedPhone : (patient?.phone || '');
-  const [copiedText, setCopiedText] = React.useState(false);
-  const [copiedLink, setCopiedLink] = React.useState(false);
+  const [copiedText, setCopiedText] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const { data: existingNotification } = useReportNotification(report.id);
   const sendMutation = useSendNotification();
   const updatePatientMutation = useUpdatePatient();
-  const [saveToPatientProfile, setSaveToPatientProfile] = React.useState(true);
+  const [saveToPatientProfile, setSaveToPatientProfile] = useState(true);
 
   // Clean 10-digit Indian phone extraction
-  const cleanDigits = React.useMemo(() => {
+  const cleanDigits = useMemo(() => {
     const raw = phoneInput.replace(/\D/g, '');
     return raw.length >= 10 ? raw.slice(-10) : raw;
   }, [phoneInput]);
@@ -70,7 +70,7 @@ export function SendWhatsAppModal({
   const isValidPhone = cleanDigits.length === 10;
   const hasRegisteredPhone = Boolean(patient?.phone && patient.phone.replace(/\D/g, '').length >= 10);
 
-  const testSummary = React.useMemo(() => {
+  const testSummary = useMemo(() => {
     return report.reportPanels?.map((rp) => rp.panel?.name).filter(Boolean).join(', ') || 'Diagnostic Panel';
   }, [report.reportPanels]);
 
@@ -79,7 +79,7 @@ export function SendWhatsAppModal({
     ? `${window.location.origin}/v/${shareToken}`
     : `https://labos.app/v/${shareToken}`;
 
-  const messageText = React.useMemo(() => {
+  const messageText = useMemo(() => {
     return `Dear *${patientName}*,\n\nYour verified diagnostic report (*#${report.reportNumber}*) from *${labName}* is ready.\n\n📋 *Investigation:* ${testSummary}\n🔒 *Status:* Digitally Authenticated (NABL ISO 15189)\n\nAccess your digital report here:\n${shareUrl}`;
   }, [patientName, report.reportNumber, labName, testSummary, shareUrl]);
 

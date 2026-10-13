@@ -124,7 +124,8 @@ export function useTenantSubscriptionQuery() {
     queryKey: SUBSCRIPTION_QUERY_KEYS.subscription,
     queryFn: async () => {
       try {
-        return await subscriptionService.getTenantSubscription();
+        const sub = await subscriptionService.getTenantSubscription();
+        return sub || DEFAULT_DEMO_SUBSCRIPTION;
       } catch {
         return DEFAULT_DEMO_SUBSCRIPTION;
       }

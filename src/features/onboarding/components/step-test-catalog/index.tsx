@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import { FlaskConical, ChevronRight, ChevronLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import { useTemplatesCatalog, useSeedTemplates } from '../../api/use-onboarding';
 import { cn } from '@/lib/utils';
@@ -45,7 +45,7 @@ export function StepTestCatalog({ initialData, onNext, onBack }: StepTestCatalog
   const seedTemplates = useSeedTemplates();
 
   // Track user customizations (selection toggle and custom price inputs)
-  const [userSelections, setUserSelections] = React.useState<Record<string, boolean>>(() => {
+  const [userSelections, setUserSelections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     const base = initialData.panels.length > 0 ? initialData.panels : DEFAULT_PANELS;
     base.forEach((p) => {
@@ -54,7 +54,7 @@ export function StepTestCatalog({ initialData, onNext, onBack }: StepTestCatalog
     return initial;
   });
 
-  const [customPrices, setCustomPrices] = React.useState<Record<string, number>>(() => {
+  const [customPrices, setCustomPrices] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     const base = initialData.panels.length > 0 ? initialData.panels : DEFAULT_PANELS;
     base.forEach((p) => {
@@ -64,7 +64,7 @@ export function StepTestCatalog({ initialData, onNext, onBack }: StepTestCatalog
   });
 
   // Derived panels combining DB templates + defaults + user customizations
-  const panels = React.useMemo(() => {
+  const panels = useMemo(() => {
     const base = initialData.panels.length > 0 ? initialData.panels : DEFAULT_PANELS;
     return base.map((p) => {
       const matched = dbTemplates?.find(
@@ -83,9 +83,9 @@ export function StepTestCatalog({ initialData, onNext, onBack }: StepTestCatalog
     });
   }, [dbTemplates, initialData.panels, userSelections, customPrices]);
 
-  const [activeFilter, setActiveFilter] = React.useState('All');
-  const [isSeeding, setIsSeeding] = React.useState(false);
-  const [seedError, setSeedError] = React.useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
 
   const filteredPanels = activeFilter === 'All'
     ? panels

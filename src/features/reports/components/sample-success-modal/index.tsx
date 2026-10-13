@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2,
@@ -54,11 +54,11 @@ export function SampleSuccessModal({
   invoice,
   onRegisterNext,
 }: SampleSuccessModalProps) {
-  const [copied, setCopied] = React.useState(false);
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = React.useState(false);
-  const [isStickerModalOpen, setIsStickerModalOpen] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
 
-  const displayInvoice: Invoice = React.useMemo(() => {
+  const displayInvoice: Invoice = useMemo(() => {
     const finalNet = netTotal ?? Math.max(0, totalPrice - discount);
     if (!invoice) {
       return {

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   FilePlus2,
@@ -29,21 +29,21 @@ export default function AccessionsWorklistPage() {
   const { data: reports = [], isLoading, isError, error, refetch, isFetching } = useReports();
   const { data: notifLogs = [] } = useNotificationLogs();
 
-  const [activeTab, setActiveTab] = React.useState<'worklist' | 'audit'>('worklist');
-  const [searchQuery, setSearchQuery] = React.useState<string>('');
-  const [selectedStatus, setSelectedStatus] = React.useState<'ALL' | ReportStatus>('ALL');
-  const [panicOnly, setPanicOnly] = React.useState<boolean>(false);
-  const [whatsAppModalReport, setWhatsAppModalReport] = React.useState<DetailedReport | null>(null);
+  const [activeTab, setActiveTab] = useState<'worklist' | 'audit'>('worklist');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<'ALL' | ReportStatus>('ALL');
+  const [panicOnly, setPanicOnly] = useState<boolean>(false);
+  const [whatsAppModalReport, setWhatsAppModalReport] = useState<DetailedReport | null>(null);
 
   // Compute live metrics across all fetched reports
   const totalCount = reports.length;
-  const draftCount = React.useMemo(() => reports.filter((r) => r.status === 'DRAFT').length, [reports]);
-  const finalizedCount = React.useMemo(() => reports.filter((r) => r.status === 'FINALIZED').length, [reports]);
-  const panicCount = React.useMemo(() => reports.filter((r) => r.values?.some((v) => v.isOutOfRange)).length, [reports]);
-  const notifStats = React.useMemo(() => computeNotificationStats(notifLogs), [notifLogs]);
+  const draftCount = useMemo(() => reports.filter((r) => r.status === 'DRAFT').length, [reports]);
+  const finalizedCount = useMemo(() => reports.filter((r) => r.status === 'FINALIZED').length, [reports]);
+  const panicCount = useMemo(() => reports.filter((r) => r.values?.some((v) => v.isOutOfRange)).length, [reports]);
+  const notifStats = useMemo(() => computeNotificationStats(notifLogs), [notifLogs]);
 
   // Apply search, status, and panic filtering
-  const filteredReports = React.useMemo(() => {
+  const filteredReports = useMemo(() => {
     return reports.filter((report) => {
       if (selectedStatus !== 'ALL' && report.status !== selectedStatus) return false;
       if (panicOnly && !report.values?.some((v) => v.isOutOfRange)) return false;

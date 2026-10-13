@@ -1,9 +1,14 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Plus, Trash2, Receipt, QrCode, Banknote, CreditCard } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
-import type { CreateInvoiceDto, CreateInvoiceItemDto, PaymentMethod } from '../types';
+import { newInvoiceSchema, type NewInvoiceSchema } from '../schemas/new-invoice.schema';
+import type { CreateInvoiceDto, CreateInvoiceItemDto } from '../types';
 
 interface NewInvoiceModalProps {
   isOpen: boolean;
@@ -22,22 +27,57 @@ const COMMON_TESTS = [
 ];
 
 export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalProps) {
-  const [patientName, setPatientName] = React.useState('');
-  const [patientMrn, setPatientMrn] = React.useState('');
-  const [patientPhone, setPatientPhone] = React.useState('');
-  const [items, setItems] = React.useState<CreateInvoiceItemDto[]>([
+  const [items, setItems] = useState<CreateInvoiceItemDto[]>([
     { description: 'Complete Hemogram / CBC', unitPrice: 380, quantity: 1 },
   ]);
-  const [discount, setDiscount] = React.useState('0');
-  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('UPI');
-  const [markAsPaid, setMarkAsPaid] = React.useState(true);
-  const [notes, setNotes] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [itemsError, setItemsError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<NewInvoiceSchema>({
+    resolver: zodResolver(newInvoiceSchema),
+    defaultValues: {
+      patientName: '',
+      patientMrn: '',
+      patientPhone: '',
+      discount: 0,
+      paymentMethod: 'UPI',
+      markAsPaid: true,
+      notes: '',
+    },
+  });
+
+  const paymentMethod = watch('paymentMethod');
+  const markAsPaid = watch('markAsPaid');
+  const discountVal = Number(watch('discount')) || 0;
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        patientName: '',
+        patientMrn: '',
+        patientPhone: '',
+        discount: 0,
+        paymentMethod: 'UPI',
+        markAsPaid: true,
+        notes: '',
+      });
+      setItems([{ description: 'Complete Hemogram / CBC', unitPrice: 380, quantity: 1 }]);
+      setItemsError(null);
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
   const handleAddItem = (name: string, price: number) => {
     setItems((prev) => [...prev, { description: name, unitPrice: price, quantity: 1 }]);
+    setItemsError(null);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -45,30 +85,32 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
   };
 
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * (item.quantity || 1), 0);
-  const discountVal = Number(discount) || 0;
   const totalAmount = Math.max(0, subtotal - discountVal);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!patientName.trim() || items.length === 0) return;
+  const onSubmitHandler = handleSubmit(async (values) => {
+    if (items.length === 0) {
+      setItemsError('Please add at least one line item to generate an invoice');
+      return;
+    }
+    setItemsError(null);
 
     setIsSubmitting(true);
     try {
       await onSubmit({
         patientId: `pt-${Date.now()}`,
-        patientName: patientName.trim(),
-        patientMrn: patientMrn.trim() || `PT-${Math.floor(10000 + Math.random() * 90000)}`,
+        patientName: values.patientName.trim(),
+        patientMrn: values.patientMrn?.trim() || `PT-${Math.floor(10000 + Math.random() * 90000)}`,
         items,
-        discount: discountVal,
-        paymentMethod,
-        markAsPaid,
-        notes: notes.trim() || undefined,
+        discount: Number(values.discount) || 0,
+        paymentMethod: values.paymentMethod,
+        markAsPaid: values.markAsPaid,
+        notes: values.notes?.trim() || undefined,
       });
       onClose();
     } finally {
       setIsSubmitting(false);
     }
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
@@ -96,7 +138,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
+        <form onSubmit={onSubmitHandler} noValidate className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
           {/* Patient Details */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
             <div className="sm:col-span-6">
@@ -105,12 +147,16 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
               </label>
               <input
                 type="text"
-                required
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
+                {...register('patientName')}
                 placeholder="e.g. Ramesh V. Gupta"
-                className="w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className={cn(
+                  'w-full h-8 px-2.5 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                  errors.patientName && 'border-destructive focus:ring-destructive'
+                )}
               />
+              {errors.patientName && (
+                <p className="text-[11px] text-destructive mt-1">{errors.patientName.message}</p>
+              )}
             </div>
             <div className="sm:col-span-3">
               <label className="block text-[11px] font-medium text-muted-foreground mb-1">
@@ -118,23 +164,33 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
               </label>
               <input
                 type="text"
-                value={patientMrn}
-                onChange={(e) => setPatientMrn(e.target.value)}
+                {...register('patientMrn')}
                 placeholder="e.g. PT-10492"
-                className="w-full h-8 px-2.5 text-xs font-mono bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className={cn(
+                  'w-full h-8 px-2.5 text-xs font-mono bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                  errors.patientMrn && 'border-destructive'
+                )}
               />
+              {errors.patientMrn && (
+                <p className="text-[11px] text-destructive mt-1">{errors.patientMrn.message}</p>
+              )}
             </div>
             <div className="sm:col-span-3">
               <label className="block text-[11px] font-medium text-muted-foreground mb-1">
                 Mobile (+91)
               </label>
               <input
-                type="text"
-                value={patientPhone}
-                onChange={(e) => setPatientPhone(e.target.value)}
+                type="tel"
+                {...register('patientPhone')}
                 placeholder="98201 23456"
-                className="w-full h-8 px-2.5 text-xs font-mono bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className={cn(
+                  'w-full h-8 px-2.5 text-xs font-mono bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                  errors.patientPhone && 'border-destructive'
+                )}
               />
+              {errors.patientPhone && (
+                <p className="text-[11px] text-destructive mt-1">{errors.patientPhone.message}</p>
+              )}
             </div>
           </div>
 
@@ -214,6 +270,9 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
               </tbody>
             </table>
           </div>
+          {itemsError && (
+            <p className="text-[11px] text-destructive font-medium">{itemsError}</p>
+          )}
 
           {/* Pricing Summary */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
@@ -225,7 +284,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
                 <div className="grid grid-cols-3 gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod('UPI')}
+                    onClick={() => setValue('paymentMethod', 'UPI', { shouldValidate: true })}
                     className={`py-1.5 px-2 rounded border text-xs font-medium inline-flex items-center justify-center gap-1 transition-colors ${
                       paymentMethod === 'UPI'
                         ? 'bg-primary text-primary-foreground border-primary font-semibold'
@@ -237,7 +296,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod('CASH')}
+                    onClick={() => setValue('paymentMethod', 'CASH', { shouldValidate: true })}
                     className={`py-1.5 px-2 rounded border text-xs font-medium inline-flex items-center justify-center gap-1 transition-colors ${
                       paymentMethod === 'CASH'
                         ? 'bg-primary text-primary-foreground border-primary font-semibold'
@@ -249,7 +308,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod('CARD')}
+                    onClick={() => setValue('paymentMethod', 'CARD', { shouldValidate: true })}
                     className={`py-1.5 px-2 rounded border text-xs font-medium inline-flex items-center justify-center gap-1 transition-colors ${
                       paymentMethod === 'CARD'
                         ? 'bg-primary text-primary-foreground border-primary font-semibold'
@@ -266,8 +325,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
                 <input
                   type="checkbox"
                   id="mark-paid"
-                  checked={markAsPaid}
-                  onChange={(e) => setMarkAsPaid(e.target.checked)}
+                  {...register('markAsPaid')}
                   className="rounded border-input text-primary focus:ring-primary w-4 h-4"
                 />
                 <label htmlFor="mark-paid" className="text-xs font-medium text-foreground cursor-pointer">
@@ -281,11 +339,16 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
                 </label>
                 <input
                   type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  {...register('notes')}
                   placeholder="e.g. Corporate tie-up or concession rationale"
-                  className="w-full h-8 px-2 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className={cn(
+                    'w-full h-8 px-2 text-xs bg-muted/30 border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary',
+                    errors.notes && 'border-destructive'
+                  )}
                 />
+                {errors.notes && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.notes.message}</p>
+                )}
               </div>
             </div>
 
@@ -301,12 +364,17 @@ export function NewInvoiceModal({ isOpen, onClose, onSubmit }: NewInvoiceModalPr
                   <input
                     type="number"
                     min="0"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                    className="w-16 h-6 px-1.5 text-right font-mono text-xs bg-background border border-input rounded"
+                    {...register('discount')}
+                    className={cn(
+                      'w-16 h-6 px-1.5 text-right font-mono text-xs bg-background border border-input rounded',
+                      errors.discount && 'border-destructive'
+                    )}
                   />
                 </div>
               </div>
+              {errors.discount && (
+                <p className="text-[11px] text-destructive text-right">{errors.discount.message}</p>
+              )}
               <div className="flex justify-between text-muted-foreground pt-1 border-t border-border">
                 <span className="font-semibold text-foreground">Net Payable:</span>
                 <span className="font-mono font-bold text-base text-foreground">

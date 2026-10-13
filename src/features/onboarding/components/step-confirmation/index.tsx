@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect } from 'react';
 import {
   CheckCircle2,
   Building2,
@@ -19,7 +19,7 @@ interface StepConfirmationProps {
 export function StepConfirmation({ state }: StepConfirmationProps) {
   const { labProfile, pathologist, catalog } = state;
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Set presence flag so Edge Middleware recognizes onboarding completion
     setLabIdCookie(true);
   }, []);

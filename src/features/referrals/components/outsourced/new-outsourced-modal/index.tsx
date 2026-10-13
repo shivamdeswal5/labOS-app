@@ -1,11 +1,15 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Truck, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { REFERENCE_LAB_OPTIONS } from '@/lib/demo-data/outsourced';
 import { useCreateOutsourcedTest } from '@/features/referrals/api/use-outsourced';
 import { useReports } from '@/features/reports/api/use-reports';
+import { newOutsourcedSchema, type NewOutsourcedSchema } from '@/features/referrals/schemas/new-outsourced.schema';
 
 interface NewOutsourcedModalProps {
   isOpen: boolean;
@@ -77,71 +81,79 @@ function NewOutsourcedForm({
 }: NewOutsourcedFormProps) {
   const { data: reports = [] } = useReports();
   const firstReport = reports[0];
-
-  const [selectedReportId, setSelectedReportId] = React.useState(
-    defaultReportId || firstReport?.id || 'f14faf1a-0151-4183-b3ab-012366668d29',
-  );
-  const [reportNumber, setReportNumber] = React.useState(
-    defaultReportNumber || firstReport?.reportNumber || 'R-20260924-0001',
-  );
-  const [patientName, setPatientName] = React.useState(
-    defaultPatientName || firstReport?.patient?.name || 'Rajesh Kumar',
-  );
-  const [testName, setTestName] = React.useState('');
-  const [referenceLabName, setReferenceLabName] = React.useState(REFERENCE_LAB_OPTIONS[0]);
-  const [customLabName, setCustomLabName] = React.useState('');
-  const [courierPartner, setCourierPartner] = React.useState('Blue Dart Express');
-  const [trackingNumber, setTrackingNumber] = React.useState('');
-  const [cost, setCost] = React.useState<number | ''>(400);
-  const [notes, setNotes] = React.useState('');
-
   const createMutation = useCreateOutsourcedTest();
 
+  const initialReportId = defaultReportId || firstReport?.id || 'f14faf1a-0151-4183-b3ab-012366668d29';
+  const initialReportNumber = defaultReportNumber || firstReport?.reportNumber || 'R-20260924-0001';
+  const initialPatientName = defaultPatientName || firstReport?.patient?.name || 'Rajesh Kumar';
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<NewOutsourcedSchema>({
+    resolver: zodResolver(newOutsourcedSchema),
+    defaultValues: {
+      reportId: initialReportId,
+      reportNumber: initialReportNumber,
+      patientName: initialPatientName,
+      testName: '',
+      referenceLabName: REFERENCE_LAB_OPTIONS[0],
+      customLabName: '',
+      courierPartner: 'Blue Dart Express',
+      trackingNumber: '',
+      cost: 400,
+      notes: '',
+    },
+  });
+
+  const selectedReportId = watch('reportId');
+  const referenceLabName = watch('referenceLabName');
+
   const handleSelectAccession = (repId: string) => {
-    setSelectedReportId(repId);
+    setValue('reportId', repId, { shouldValidate: true });
     const matched = reports.find((r) => r.id === repId);
     if (matched) {
-      setReportNumber(matched.reportNumber);
+      setValue('reportNumber', matched.reportNumber);
       if (matched.patient?.name) {
-        setPatientName(matched.patient.name);
+        setValue('patientName', matched.patient.name, { shouldValidate: true });
       }
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!testName.trim()) return;
-
-    const chosenLab = referenceLabName.startsWith('Other')
-      ? customLabName || 'Reference Pathology Lab'
-      : referenceLabName;
+  const onSubmit = handleSubmit(async (values) => {
+    const chosenLab = values.referenceLabName.startsWith('Other')
+      ? values.customLabName || 'Reference Pathology Lab'
+      : values.referenceLabName;
 
     const fullNotes = [
-      notes,
-      courierPartner ? `Courier: ${courierPartner}` : null,
-      trackingNumber ? `Waybill: ${trackingNumber}` : null,
-      reportNumber ? `Accession: ${reportNumber}` : null,
-      patientName ? `Patient: ${patientName}` : null,
+      values.notes,
+      values.courierPartner ? `Courier: ${values.courierPartner}` : null,
+      values.trackingNumber ? `Waybill: ${values.trackingNumber}` : null,
+      values.reportNumber ? `Accession: ${values.reportNumber}` : null,
+      values.patientName ? `Patient: ${values.patientName}` : null,
     ]
       .filter(Boolean)
       .join(' | ');
 
     try {
       await createMutation.mutateAsync({
-        reportId: selectedReportId || 'f14faf1a-0151-4183-b3ab-012366668d29',
-        testName,
+        reportId: values.reportId || 'f14faf1a-0151-4183-b3ab-012366668d29',
+        testName: values.testName.trim(),
         referenceLabName: chosenLab,
-        cost: typeof cost === 'number' ? cost : undefined,
+        cost: values.cost !== undefined ? Number(values.cost) : undefined,
         notes: fullNotes || undefined,
       });
       onClose();
     } catch (err) {
       console.error('Failed to create outsourced send-out:', err);
     }
-  };
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 overflow-y-auto flex flex-col gap-4 text-xs">
+    <form onSubmit={onSubmit} noValidate className="p-4 overflow-y-auto flex flex-col gap-4 text-xs">
       {/* Accession & Patient Information */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
@@ -150,7 +162,10 @@ function NewOutsourcedForm({
             <select
               value={selectedReportId}
               onChange={(e) => handleSelectAccession(e.target.value)}
-              className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono"
+              className={cn(
+                'h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:outline-none focus:border-primary',
+                errors.reportId && 'border-destructive'
+              )}
             >
               {reports.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -162,10 +177,12 @@ function NewOutsourcedForm({
             <input
               type="text"
               placeholder="e.g. R-20260924-0001"
-              value={reportNumber}
-              onChange={(e) => setReportNumber(e.target.value)}
-              className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono"
+              {...register('reportNumber')}
+              className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:outline-none focus:border-primary"
             />
+          )}
+          {errors.reportId && (
+            <p className="text-[11px] text-destructive mt-0.5">{errors.reportId.message}</p>
           )}
         </div>
         <div className="flex flex-col gap-1">
@@ -173,27 +190,36 @@ function NewOutsourcedForm({
           <input
             type="text"
             placeholder="e.g. Rajesh Kumar"
-            value={patientName}
-            onChange={(e) => setPatientName(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground"
+            {...register('patientName')}
+            className={cn(
+              'h-9 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary',
+              errors.patientName && 'border-destructive'
+            )}
           />
+          {errors.patientName && (
+            <p className="text-[11px] text-destructive mt-0.5">{errors.patientName.message}</p>
+          )}
         </div>
       </div>
 
       {/* Test Name */}
       <div className="flex flex-col gap-1">
         <label className="text-muted-foreground font-medium">
-          Investigation / Test to Outsource <span className="text-red-500">*</span>
+          Investigation / Test to Outsource <span className="text-destructive">*</span>
         </label>
         <input
           type="text"
-          required
           list="common-sendouts"
           placeholder="e.g. 25-OH Vitamin D3 Total, Histopathology Biopsy..."
-          value={testName}
-          onChange={(e) => setTestName(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-medium"
+          {...register('testName')}
+          className={cn(
+            'h-9 px-3 rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:border-primary',
+            errors.testName && 'border-destructive focus:border-destructive'
+          )}
         />
+        {errors.testName && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.testName.message}</p>
+        )}
         <datalist id="common-sendouts">
           <option value="25-OH Vitamin D Total (CLIA)" />
           <option value="Thyroid Antibodies (Anti-TPO & Anti-TG)" />
@@ -209,9 +235,8 @@ function NewOutsourcedForm({
       <div className="flex flex-col gap-1">
         <label className="text-muted-foreground font-medium">Target Reference Laboratory</label>
         <select
-          value={referenceLabName}
-          onChange={(e) => setReferenceLabName(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-border bg-background text-foreground"
+          {...register('referenceLabName')}
+          className="h-9 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary"
         >
           {REFERENCE_LAB_OPTIONS.map((lab) => (
             <option key={lab} value={lab}>
@@ -219,6 +244,9 @@ function NewOutsourcedForm({
             </option>
           ))}
         </select>
+        {errors.referenceLabName && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.referenceLabName.message}</p>
+        )}
       </div>
 
       {referenceLabName.startsWith('Other') && (
@@ -227,10 +255,15 @@ function NewOutsourcedForm({
           <input
             type="text"
             placeholder="e.g. Anand Diagnostic Laboratory"
-            value={customLabName}
-            onChange={(e) => setCustomLabName(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground"
+            {...register('customLabName')}
+            className={cn(
+              'h-9 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary',
+              errors.customLabName && 'border-destructive'
+            )}
           />
+          {errors.customLabName && (
+            <p className="text-[11px] text-destructive mt-0.5">{errors.customLabName.message}</p>
+          )}
         </div>
       )}
 
@@ -241,9 +274,8 @@ function NewOutsourcedForm({
           <input
             type="text"
             placeholder="e.g. Blue Dart, DTDC, Hub Runner"
-            value={courierPartner}
-            onChange={(e) => setCourierPartner(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground"
+            {...register('courierPartner')}
+            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -251,9 +283,8 @@ function NewOutsourcedForm({
           <input
             type="text"
             placeholder="e.g. BD-884920"
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono"
+            {...register('trackingNumber')}
+            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:outline-none focus:border-primary"
           />
         </div>
       </div>
@@ -272,11 +303,16 @@ function NewOutsourcedForm({
             min="0"
             step="10"
             placeholder="400"
-            value={cost}
-            onChange={(e) => setCost(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-9 pl-7 pr-3 w-full rounded-lg border border-border bg-background text-foreground font-mono font-semibold"
+            {...register('cost')}
+            className={cn(
+              'h-9 pl-7 pr-3 w-full rounded-lg border border-border bg-background text-foreground font-mono font-semibold focus:outline-none focus:border-primary',
+              errors.cost && 'border-destructive'
+            )}
           />
         </div>
+        {errors.cost && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.cost.message}</p>
+        )}
       </div>
 
       {/* Sample Handling Remarks */}
@@ -285,10 +321,15 @@ function NewOutsourcedForm({
         <textarea
           rows={2}
           placeholder="e.g. Centrifuged serum packed with gel cool pack. Awaiting 4 PM evening batch."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          className="p-2.5 rounded-lg border border-border bg-background text-foreground resize-none"
+          {...register('notes')}
+          className={cn(
+            'p-2.5 rounded-lg border border-border bg-background text-foreground resize-none focus:outline-none focus:border-primary',
+            errors.notes && 'border-destructive'
+          )}
         />
+        {errors.notes && (
+          <p className="text-[11px] text-destructive mt-0.5">{errors.notes.message}</p>
+        )}
       </div>
 
       {/* Submit Action */}
@@ -299,7 +340,7 @@ function NewOutsourcedForm({
         <Button
           type="submit"
           size="sm"
-          disabled={createMutation.isPending || !testName.trim()}
+          disabled={createMutation.isPending}
           className="gap-1.5"
         >
           <Package className="w-3.5 h-3.5" />

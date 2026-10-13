@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import { Check, Sparkles } from 'lucide-react';
 import { PlatformPlan, BillingCycle } from '@/features/subscription/types';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ export function PlanCard({
   const price = cycle === 'YEARLY' ? plan.yearlyPriceInr : plan.monthlyPriceInr;
   const priceLabel = cycle === 'YEARLY' ? '₹' + price.toLocaleString('en-IN') + '/yr' : '₹' + price.toLocaleString('en-IN') + '/mo';
 
-  const features = React.useMemo(() => {
+  const features = useMemo(() => {
     if (plan.slug === 'STARTER') {
       return [
         'Up to 2 Staff Logins (DMLT/Owner)',

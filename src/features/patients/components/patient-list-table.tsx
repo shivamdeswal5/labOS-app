@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import {
   Search,
   X,
@@ -33,7 +33,7 @@ export function PatientListTable({
   onRefresh,
 }: PatientListTableProps) {
   // Apply filter mode
-  const filteredPatients = React.useMemo(() => {
+  const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
       if (filterMode === 'ABNORMAL' && !p.hasAbnormal) return false;
       return true;

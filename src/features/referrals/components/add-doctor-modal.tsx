@@ -1,10 +1,14 @@
 'use client';
+'use no memo';
 
-import * as React from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X, UserPlus, Stethoscope, Building2, Phone, Mail, Percent, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useCreateDoctor } from '../api/use-commission';
-import type { CommissionType } from '../types';
+import { addDoctorSchema, type AddDoctorSchema } from '../schemas/add-doctor.schema';
 
 interface AddDoctorModalProps {
   isOpen: boolean;
@@ -12,45 +16,63 @@ interface AddDoctorModalProps {
 }
 
 export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
-  const [name, setName] = React.useState('');
-  const [clinic, setClinic] = React.useState('');
-  const [phone, setPhone] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [specialty, setSpecialty] = React.useState('');
-  const [regNumber, setRegNumber] = React.useState('');
-  const [commissionType, setCommissionType] = React.useState<CommissionType>('PERCENTAGE');
-  const [commissionValue, setCommissionValue] = React.useState<string>('15');
-  const [pan, setPan] = React.useState('');
-  const [bankAccount, setBankAccount] = React.useState('');
-  const [ifsc, setIfsc] = React.useState('');
-
   const createDoctorMutation = useCreateDoctor();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<AddDoctorSchema>({
+    resolver: zodResolver(addDoctorSchema),
+    defaultValues: {
+      name: '',
+      specialty: '',
+      clinic: '',
+      regNumber: '',
+      phone: '',
+      email: '',
+      commissionType: 'PERCENTAGE',
+      commissionValue: 15,
+      pan: '',
+      bankAccount: '',
+      ifsc: '',
+    },
+  });
+
+  const commissionType = watch('commissionType');
+
+  useEffect(() => {
+    if (isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
+  const onSubmit = handleSubmit(async (values) => {
     try {
       await createDoctorMutation.mutateAsync({
-        name,
-        clinicName: clinic,
-        phone,
-        email,
-        specialty,
-        registrationNumber: regNumber,
-        commissionType,
-        commissionValue: Number(commissionValue) || 0,
-        pan,
-        bankAccount,
-        ifsc,
+        name: values.name.trim(),
+        clinicName: values.clinic?.trim() || undefined,
+        phone: values.phone?.trim() || undefined,
+        email: values.email?.trim() || undefined,
+        specialty: values.specialty?.trim() || undefined,
+        registrationNumber: values.regNumber?.trim() || undefined,
+        commissionType: values.commissionType,
+        commissionValue: values.commissionType === 'NONE' ? 0 : Number(values.commissionValue) || 0,
+        pan: values.pan?.trim() ? values.pan.toUpperCase().trim() : undefined,
+        bankAccount: values.bankAccount?.trim() || undefined,
+        ifsc: values.ifsc?.trim() ? values.ifsc.toUpperCase().trim() : undefined,
       });
+      reset();
       onClose();
     } catch (err) {
       console.error('Failed to register doctor:', err);
     }
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in-0">
@@ -79,7 +101,7 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-3.5 overflow-y-auto text-xs">
+        <form onSubmit={onSubmit} noValidate className="p-4 space-y-3.5 overflow-y-auto text-xs">
           {/* Identity & Clinic */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -90,13 +112,17 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 <Stethoscope className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register('name')}
                   placeholder="e.g. Dr. Rajiv Sethi"
-                  className="w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                  className={cn(
+                    'w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary',
+                    errors.name && 'border-destructive focus:border-destructive'
+                  )}
                 />
               </div>
+              {errors.name && (
+                <p className="text-[11px] text-destructive mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div>
@@ -105,11 +131,13 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
               </label>
               <input
                 type="text"
-                value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
+                {...register('specialty')}
                 placeholder="e.g. Endocrinology, Nephrology"
                 className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
               />
+              {errors.specialty && (
+                <p className="text-[11px] text-destructive mt-1">{errors.specialty.message}</p>
+              )}
             </div>
           </div>
 
@@ -122,12 +150,14 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 <Building2 className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  value={clinic}
-                  onChange={(e) => setClinic(e.target.value)}
+                  {...register('clinic')}
                   placeholder="e.g. Apex Diabetes Care, Bandra"
                   className="w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
                 />
               </div>
+              {errors.clinic && (
+                <p className="text-[11px] text-destructive mt-1">{errors.clinic.message}</p>
+              )}
             </div>
 
             <div>
@@ -136,11 +166,13 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
               </label>
               <input
                 type="text"
-                value={regNumber}
-                onChange={(e) => setRegNumber(e.target.value)}
+                {...register('regNumber')}
                 placeholder="e.g. KMC-48192"
                 className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
               />
+              {errors.regNumber && (
+                <p className="text-[11px] text-destructive mt-1">{errors.regNumber.message}</p>
+              )}
             </div>
           </div>
 
@@ -153,13 +185,18 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
               <div className="relative">
                 <Phone className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  type="tel"
+                  {...register('phone')}
                   placeholder="+91 98201 00000"
-                  className="w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+                  className={cn(
+                    'w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono',
+                    errors.phone && 'border-destructive focus:border-destructive'
+                  )}
                 />
               </div>
+              {errors.phone && (
+                <p className="text-[11px] text-destructive mt-1">{errors.phone.message}</p>
+              )}
             </div>
 
             <div>
@@ -170,12 +207,17 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 <Mail className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register('email')}
                   placeholder="doctor@clinic.com"
-                  className="w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                  className={cn(
+                    'w-full h-8 pl-8 pr-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary',
+                    errors.email && 'border-destructive focus:border-destructive'
+                  )}
                 />
               </div>
+              {errors.email && (
+                <p className="text-[11px] text-destructive mt-1">{errors.email.message}</p>
+              )}
             </div>
           </div>
 
@@ -189,7 +231,7 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => setCommissionType('PERCENTAGE')}
+                onClick={() => setValue('commissionType', 'PERCENTAGE', { shouldValidate: true })}
                 className={`py-1.5 px-2 rounded text-xs font-medium border text-center transition-all ${
                   commissionType === 'PERCENTAGE'
                     ? 'bg-card border-primary text-foreground font-semibold shadow-sm'
@@ -201,7 +243,7 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
 
               <button
                 type="button"
-                onClick={() => setCommissionType('FLAT')}
+                onClick={() => setValue('commissionType', 'FLAT', { shouldValidate: true })}
                 className={`py-1.5 px-2 rounded text-xs font-medium border text-center transition-all ${
                   commissionType === 'FLAT'
                     ? 'bg-card border-primary text-foreground font-semibold shadow-sm'
@@ -213,7 +255,7 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
 
               <button
                 type="button"
-                onClick={() => setCommissionType('NONE')}
+                onClick={() => setValue('commissionType', 'NONE', { shouldValidate: true })}
                 className={`py-1.5 px-2 rounded text-xs font-medium border text-center transition-all ${
                   commissionType === 'NONE'
                     ? 'bg-card border-primary text-foreground font-semibold shadow-sm'
@@ -231,11 +273,17 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 </label>
                 <input
                   type="number"
-                  value={commissionValue}
-                  onChange={(e) => setCommissionValue(e.target.value)}
+                  step="any"
+                  {...register('commissionValue')}
                   placeholder={commissionType === 'PERCENTAGE' ? '15' : '200'}
-                  className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+                  className={cn(
+                    'w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono',
+                    errors.commissionValue && 'border-destructive focus:border-destructive'
+                  )}
                 />
+                {errors.commissionValue && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.commissionValue.message}</p>
+                )}
               </div>
             )}
           </div>
@@ -254,11 +302,16 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 </label>
                 <input
                   type="text"
-                  value={pan}
-                  onChange={(e) => setPan(e.target.value.toUpperCase())}
+                  {...register('pan')}
                   placeholder="AAAPC2019K"
-                  className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono uppercase"
+                  className={cn(
+                    'w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono uppercase',
+                    errors.pan && 'border-destructive focus:border-destructive'
+                  )}
                 />
+                {errors.pan && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.pan.message}</p>
+                )}
               </div>
 
               <div>
@@ -267,11 +320,16 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 </label>
                 <input
                   type="text"
-                  value={ifsc}
-                  onChange={(e) => setIfsc(e.target.value.toUpperCase())}
+                  {...register('ifsc')}
                   placeholder="HDFC0001042"
-                  className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono uppercase"
+                  className={cn(
+                    'w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono uppercase',
+                    errors.ifsc && 'border-destructive focus:border-destructive'
+                  )}
                 />
+                {errors.ifsc && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.ifsc.message}</p>
+                )}
               </div>
 
               <div>
@@ -280,11 +338,16 @@ export function AddDoctorModal({ isOpen, onClose }: AddDoctorModalProps) {
                 </label>
                 <input
                   type="text"
-                  value={bankAccount}
-                  onChange={(e) => setBankAccount(e.target.value)}
+                  {...register('bankAccount')}
                   placeholder="501002941829"
-                  className="w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+                  className={cn(
+                    'w-full h-8 px-2.5 text-xs bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono',
+                    errors.bankAccount && 'border-destructive focus:border-destructive'
+                  )}
                 />
+                {errors.bankAccount && (
+                  <p className="text-[11px] text-destructive mt-1">{errors.bankAccount.message}</p>
+                )}
               </div>
             </div>
           </div>
