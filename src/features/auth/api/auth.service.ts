@@ -75,6 +75,11 @@ export async function signupWithEmailAndCreateLab(values: SignupFormValues) {
           user: { id: 'demo-new-user', email: values.email } as unknown as import('@supabase/supabase-js').User,
         };
       }
+      if (signupError.message?.toLowerCase().includes('rate limit')) {
+        throw new Error(
+          'Email verification limit reached. Please disable "Confirm email" in your Supabase Dashboard (Authentication > Providers > Email) to allow instant test signups.',
+        );
+      }
       throw new Error(signupError.message);
     }
 
