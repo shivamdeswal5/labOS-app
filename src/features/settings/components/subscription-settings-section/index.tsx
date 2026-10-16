@@ -13,7 +13,9 @@ import {
 import {
   useTenantSubscriptionQuery,
 } from '@/features/subscription/api/subscription.queries';
+import { useCancelDowngradeMutation } from '@/features/subscription/api/subscription.mutations';
 import { PlanUpgradeModal } from '@/features/subscription/components/plan-upgrade-modal';
+import { BillingHistorySection } from '@/features/subscription/components/billing-history-section';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/lib/formatters';
@@ -21,6 +23,7 @@ import { formatDateTime } from '@/lib/formatters';
 export function SubscriptionSettingsSection() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const { data: subscription, isLoading: isSubLoading } = useTenantSubscriptionQuery();
+  const cancelDowngradeMutation = useCancelDowngradeMutation();
 
   const formattedPeriodEnd = useMemo(() => {
     if (!subscription?.currentPeriodEnd && !subscription?.trialEnd) return null;
@@ -75,6 +78,45 @@ export function SubscriptionSettingsSection() {
 
   return (
     <div className="space-y-6">
+      {/* Scheduled Downgrade Warning Banner */}
+      {subscription?.scheduledPlanName && (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 shrink-0 text-amber-600" />
+            <span>
+              Downgrade to <strong>{subscription.scheduledPlanName}</strong> is scheduled for{' '}
+              <strong>
+                {formatDateTime(subscription.scheduledAt || subscription.currentPeriodEnd)}
+              </strong>
+              . All current {subscription.planName} features and limits remain active until renewal.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              id="btn-cancel-downgrade-banner"
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => cancelDowngradeMutation.mutate()}
+              disabled={cancelDowngradeMutation.isPending}
+              className="text-xs h-7 border-amber-500/40 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200 font-bold"
+            >
+              {cancelDowngradeMutation.isPending ? 'Cancelling...' : 'Cancel Downgrade'}
+            </Button>
+            <Button
+              id="btn-manage-transition"
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="text-xs h-7 bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30 text-amber-900 dark:text-amber-100 font-bold"
+            >
+              Manage
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Overview Card */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-xs space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
@@ -91,10 +133,11 @@ export function SubscriptionSettingsSection() {
           </div>
 
           <Button
+            id="btn-change-plan-upgrade"
             variant="default"
             size="sm"
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
             <span>Change Plan / Upgrade</span>
@@ -185,6 +228,9 @@ export function SubscriptionSettingsSection() {
           </div>
         </div>
       </div>
+
+      {/* Historical Invoices & Billing Ledger */}
+      <BillingHistorySection />
 
       {/* Upgrade Modal */}
       <PlanUpgradeModal

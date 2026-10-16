@@ -10,6 +10,7 @@ interface PlanCardProps {
   cycle: BillingCycle;
   isCurrent: boolean;
   isSelected: boolean;
+  actionType?: 'CURRENT' | 'UPGRADE' | 'DOWNGRADE' | 'SCHEDULED';
   onSelect: () => void;
   onCheckout: () => void;
   isLoading: boolean;
@@ -20,6 +21,7 @@ export function PlanCard({
   cycle,
   isCurrent,
   isSelected,
+  actionType = 'UPGRADE',
   onSelect,
   onCheckout,
   isLoading,
@@ -121,14 +123,30 @@ export function PlanCard({
             e.stopPropagation();
             onCheckout();
           }}
-          disabled={isLoading || isCurrent}
-          variant={isSelected ? 'default' : 'outline'}
-          className="w-full text-xs font-bold h-9"
+          disabled={isLoading || isCurrent || actionType === 'CURRENT' || actionType === 'SCHEDULED'}
+          variant={
+            actionType === 'DOWNGRADE'
+              ? 'outline'
+              : actionType === 'CURRENT' || actionType === 'SCHEDULED'
+                ? 'outline'
+                : isSelected || isGrowth
+                  ? 'default'
+                  : 'outline'
+          }
+          className={`w-full text-xs font-bold h-9 ${
+            actionType === 'DOWNGRADE'
+              ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10'
+              : ''
+          }`}
         >
           {isLoading && isSelected ? (
             'Preparing Checkout...'
-          ) : isCurrent ? (
+          ) : isCurrent || actionType === 'CURRENT' ? (
             'Current Plan'
+          ) : actionType === 'SCHEDULED' ? (
+            'Downgrade Pending'
+          ) : actionType === 'DOWNGRADE' ? (
+            'Schedule Downgrade'
           ) : (
             `Upgrade to ${plan.slug}`
           )}

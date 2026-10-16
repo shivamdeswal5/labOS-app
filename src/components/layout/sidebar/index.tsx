@@ -14,6 +14,7 @@ import {
   FlaskConical,
   ShieldCheck,
   ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRBAC } from '@/features/auth/hooks/use-rbac';
@@ -91,21 +92,32 @@ export function Sidebar({ collapsed, onToggleCollapse, className }: SidebarProps
         <div
           className={cn(
             'h-14 flex items-center border-b border-border bg-muted/40 transition-all',
-            collapsed ? 'px-0 justify-center' : 'px-3.5 justify-between',
+            collapsed ? 'px-1.5 justify-between' : 'px-3.5 justify-between',
           )}
         >
           {collapsed ? (
-            <Link
-              href="/"
-              className="flex items-center justify-center w-full group py-1.5"
-              title="Pathiq Home"
-            >
-              <PathiqLogo
-                variant="icon"
-                size="md"
-                className="group-hover:scale-105 transition-transform"
-              />
-            </Link>
+            <div className="flex items-center justify-between w-full">
+              <Link
+                href="/"
+                className="flex items-center justify-center p-0.5 group"
+                title="Pathiq Home"
+              >
+                <PathiqLogo
+                  variant="icon"
+                  size="sm"
+                  className="group-hover:scale-105 transition-transform"
+                />
+              </Link>
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                title="Expand sidebar (Ctrl+B or [)"
+                aria-label="Expand sidebar"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <>
               <Link

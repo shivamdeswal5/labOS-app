@@ -68,6 +68,7 @@ export function AppShell({ children, variant = 'contained', className }: AppShel
       {/* Top Navigation Bar */}
       <Header
         sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={handleToggleSidebar}
         onOpenMobileNav={handleOpenMobileNav}
         onOpenCommandPalette={handleOpenCommandPalette}
         onOpenLiveActivity={handleOpenLiveActivity}

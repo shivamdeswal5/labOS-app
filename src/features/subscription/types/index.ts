@@ -47,19 +47,70 @@ export interface TenantSubscription {
   gracePeriodEnd: string | null;
   daysRemaining: number;
   effectiveEntitlements: PlanFeatureEntitlements;
+  scheduledPlanId?: string | null;
+  scheduledPlanSlug?: PlanSlug | null;
+  scheduledPlanName?: string | null;
+  scheduledBillingCycle?: BillingCycle | null;
+  scheduledAt?: string | null;
+  customerGstin?: string | null;
+}
+
+export interface TransitionPreviewResponse {
+  allowed: boolean;
+  reason: string | null;
+  transitionType: 'SAME_PLAN' | 'UPGRADE' | 'DOWNGRADE' | 'CYCLE_CHANGE' | 'NEW_ACTIVATION';
+  isImmediate: boolean;
+  effectiveDate: string;
+  currentPlan: {
+    id: string;
+    slug: PlanSlug;
+    name: string;
+    priceInr: number;
+    billingCycle: BillingCycle;
+    periodEnd: string | null;
+    daysRemaining: number;
+  } | null;
+  targetPlan: {
+    id: string;
+    slug: PlanSlug;
+    name: string;
+    priceInr: number;
+    billingCycle: BillingCycle;
+  };
+  prorationCreditInPaise: number;
+  grossAmountInPaise: number;
+  taxGstInPaise: number;
+  netAmountInPaise: number;
+  explanation: string;
+}
+
+export interface SimulatePaymentPayload {
+  orderId: string;
+  action: 'SUCCESS' | 'DECLINE' | 'TIMEOUT';
+}
+
+export interface SubmitOfflinePaymentPayload {
+  orderId: string;
+  utrNumber: string;
+  bankName?: string;
+  notes?: string;
 }
 
 export interface CreateOrderPayload {
-  planId: string;
+  planSlug: PlanSlug;
   billingCycle: BillingCycle;
+  planId?: string;
 }
 
 export interface GatewayOrderResponse {
   orderId: string;
   keyId: string;
   amount: number;
+  amountInPaise?: number;
   currency: string;
-  labName: string;
+  planName?: string;
+  labName?: string;
+  alreadyFulfilled?: boolean;
 }
 
 export interface RazorpayPaymentSuccessResponse {
@@ -89,3 +140,20 @@ export interface RazorpayOptions {
     ondismiss?: () => void;
   };
 }
+
+export interface TenantInvoice {
+  id: string;
+  invoiceNumber: string;
+  amountInr: number;
+  subtotalInr: number;
+  taxAmountInr: number;
+  customerGstin: string | null;
+  billingPeriodStart: string;
+  billingPeriodEnd: string;
+  pdfUrl: string | null;
+  status: string;
+  createdAt: string;
+  paymentMethod?: string | null;
+  providerPaymentId?: string | null;
+}
+

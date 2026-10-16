@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Plus, Bell, Menu, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Bell, Menu, ShieldCheck, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { TrialHeaderBadge } from '@/features/subscription';
 
 interface HeaderProps {
   sidebarCollapsed: boolean;
+  onToggleSidebar?: () => void;
   onOpenMobileNav: () => void;
   onOpenCommandPalette: () => void;
   onOpenLiveActivity: () => void;
@@ -18,6 +19,7 @@ interface HeaderProps {
 
 export function Header({
   sidebarCollapsed,
+  onToggleSidebar,
   onOpenMobileNav,
   onOpenCommandPalette,
   onOpenLiveActivity,
@@ -45,6 +47,17 @@ export function Header({
         >
           <Menu className="w-5 h-5" />
         </button>
+
+        {sidebarCollapsed && onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="hidden md:flex p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+            title="Expand sidebar (Ctrl+B or [)"
+            aria-label="Expand sidebar"
+          >
+            <PanelLeftOpen className="w-4 h-4" />
+          </button>
+        )}
 
         <button
           onClick={onOpenCommandPalette}

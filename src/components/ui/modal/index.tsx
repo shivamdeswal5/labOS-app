@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+
+const emptySubscribe = () => () => {};
 
 export interface ModalProps {
   isOpen: boolean;
@@ -33,6 +36,12 @@ export function Modal({
   className = '',
   showCloseButton = true,
 }: ModalProps) {
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
   // Handle Escape key
   useEffect(() => {
     if (!isOpen) return;
@@ -58,9 +67,9 @@ export function Modal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !isMounted) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -102,6 +111,7 @@ export function Modal({
         )}
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

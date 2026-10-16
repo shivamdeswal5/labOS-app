@@ -136,6 +136,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
         setTimeout(() => dismissToast(newToast.id), 5000);
       } else if (message.event === RealtimeChannelEnum.SUBSCRIPTION_ACTIVATED) {
         queryClient.invalidateQueries({ queryKey: ['tenant-subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['tenant-invoices'] });
         const payload = message.payload as { planName?: string } | undefined;
         const newToast: RealtimeToastAlert = {
           id: `toast-${Date.now()}-${Math.random()}`,

@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/modal';
-import { usePublicPlansQuery, useTenantSubscriptionQuery, useCreateSubscriptionOrderMutation } from '../../api/subscription.queries';
+import { Button } from '@/components/ui/button';
+import { usePublicPlansQuery, useTenantSubscriptionQuery } from '../../api/subscription.queries';
+import { useCancelDowngradeMutation } from '../../api/subscription.mutations';
 import { BillingToggle } from './_components/billing-toggle';
 import { PlanCard } from './_components/plan-card';
-import { loadRazorpayCheckoutScript } from './_components/razorpay-sdk';
-import { BillingCycle, PlanSlug, RazorpayOptions } from '../../types';
-import { AlertCircle, CheckCircle2, Shield } from 'lucide-react';
+import { CheckoutReviewDialog } from './_components/checkout-review-dialog';
+import { ScheduleDowngradeDialog } from './_components/schedule-downgrade-dialog';
+import { BillingCycle, PlanSlug, PlatformPlan } from '../../types';
+import { CheckCircle2, Clock, Shield } from 'lucide-react';
 
 interface PlanUpgradeModalProps {
   isOpen: boolean;
@@ -15,15 +18,27 @@ interface PlanUpgradeModalProps {
   defaultPlanSlug?: PlanSlug;
 }
 
+const PLAN_RANK: Record<PlanSlug, number> = {
+  STARTER: 1,
+  GROWTH: 2,
+  SCALE: 3,
+};
+
+const CYCLE_RANK: Record<BillingCycle, number> = {
+  MONTHLY: 1,
+  YEARLY: 2,
+};
+
 export function PlanUpgradeModal({ isOpen, onClose, defaultPlanSlug }: PlanUpgradeModalProps) {
   const { data: plans = [], isLoading: plansLoading } = usePublicPlansQuery();
   const { data: subscription } = useTenantSubscriptionQuery();
-  const createOrderMutation = useCreateSubscriptionOrderMutation();
+  const cancelDowngradeMutation = useCancelDowngradeMutation();
 
   const [cycle, setCycle] = useState<BillingCycle>('MONTHLY');
   const [userSelectedPlanId, setUserSelectedPlanId] = useState<string | null>(null);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [reviewPlan, setReviewPlan] = useState<PlatformPlan | null>(null);
+  const [downgradePlan, setDowngradePlan] = useState<PlatformPlan | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const defaultPlan = useMemo(() => {
     if (plans.length === 0) return null;
@@ -35,122 +50,179 @@ export function PlanUpgradeModal({ isOpen, onClose, defaultPlanSlug }: PlanUpgra
 
   const activePlanId = userSelectedPlanId ?? defaultPlan?.id ?? '';
 
-  const handleCheckout = async (planId: string) => {
-    setCheckoutError(null);
-    try {
-      // 1. Ensure Razorpay SDK script is ready
-      const sdkReady = await loadRazorpayCheckoutScript();
-      if (!sdkReady) {
-        setCheckoutError('Payment gateway SDK could not be loaded. Please check your internet connection.');
-        return;
-      }
+  const currentPlanSlug = subscription?.planSlug || 'STARTER';
+  const currentPlanRank = PLAN_RANK[currentPlanSlug] || 1;
+  const currentCycleRank = subscription?.billingCycle ? CYCLE_RANK[subscription.billingCycle] : 1;
 
-      // 2. Create order on backend API
-      const order = await createOrderMutation.mutateAsync({
-        planId,
-        billingCycle: cycle,
-      });
-
-      // 3. Initialize Razorpay Modal
-      const rzpOptions: RazorpayOptions = {
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: 'Pathiq LabOS',
-        description: `Upgrade to ${order.labName}`,
-        order_id: order.orderId,
-        theme: { color: '#4f46e5' },
-        handler: () => {
-          setIsSyncing(true);
-          setTimeout(() => {
-            setIsSyncing(false);
-            onClose();
-          }, 2500);
-        },
-        modal: {
-          ondismiss: () => {
-            setCheckoutError(null);
-          },
-        },
-      };
-
-      const RazorpayConstructor = (window as unknown as { Razorpay: new (opts: RazorpayOptions) => { open: () => void } }).Razorpay;
-      if (RazorpayConstructor) {
-        const rzp = new RazorpayConstructor(rzpOptions);
-        rzp.open();
-      } else {
-        setCheckoutError('Razorpay checkout window failed to initialize.');
-      }
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Checkout initiation failed. Please try again.';
-      setCheckoutError(errorMsg);
+  const handlePlanAction = (plan: PlatformPlan, actionType: 'UPGRADE' | 'DOWNGRADE' | 'CURRENT' | 'SCHEDULED') => {
+    if (actionType === 'DOWNGRADE') {
+      setDowngradePlan(plan);
+    } else if (actionType === 'UPGRADE') {
+      setReviewPlan(plan);
     }
   };
 
+  const handleCancelDowngrade = async () => {
+    try {
+      const res = await cancelDowngradeMutation.mutateAsync();
+      setSuccessBanner(res.message);
+      setTimeout(() => setSuccessBanner(null), 4000);
+    } catch {
+      // Ignored
+    }
+  };
+
+  const scheduledDateFormatted = subscription?.scheduledAt
+    ? new Date(subscription.scheduledAt).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size="full"
-      title={
-        <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-primary" />
-          <span>Select Your Laboratory Plan</span>
-        </div>
-      }
-      description="Calibrated specifically for India's independent pathology centers. Instant UPI & NetBanking activation."
-    >
-      <div className="space-y-4">
-        {/* Billing Cycle Toggle */}
-        <BillingToggle cycle={cycle} onChange={setCycle} />
-
-        {/* Syncing State */}
-        {isSyncing && (
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2 animate-pulse">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Payment received! Synchronizing your account with our banking engine...</span>
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="full"
+        title={
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <span>Select Your Laboratory Plan</span>
           </div>
-        )}
-
-        {/* Error Alert */}
-        {checkoutError && (
-          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{checkoutError}</span>
-          </div>
-        )}
-
-        {/* Plan Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {plansLoading ? (
-            <div className="col-span-3 py-12 text-center text-sm text-muted-foreground">
-              Loading pricing plans...
+        }
+        description="Calibrated specifically for India's independent pathology centers. Transparent GST pricing and instant activation."
+      >
+        <div className="space-y-4">
+          {/* Scheduled Downgrade Warning Banner */}
+          {subscription?.scheduledPlanName && (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 shrink-0 text-amber-600" />
+                <span>
+                  Downgrade to <strong>{subscription.scheduledPlanName}</strong> is scheduled for{' '}
+                  <strong>{scheduledDateFormatted}</strong>. You retain all {subscription.planName} features
+                  until your current billing period ends.
+                </span>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleCancelDowngrade}
+                disabled={cancelDowngradeMutation.isPending}
+                className="text-xs h-7 border-amber-500/40 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200 shrink-0 font-bold"
+              >
+                {cancelDowngradeMutation.isPending ? 'Cancelling...' : 'Cancel Downgrade'}
+              </Button>
             </div>
-          ) : (
-            plans.map((p) => {
-              const isCurrent = subscription?.status === 'ACTIVE' && subscription?.planId === p.id;
-              const isSelected = activePlanId === p.id;
-              return (
-                <PlanCard
-                  key={p.id}
-                  plan={p}
-                  cycle={cycle}
-                  isCurrent={Boolean(isCurrent)}
-                  isSelected={isSelected}
-                  onSelect={() => setUserSelectedPlanId(p.id)}
-                  onCheckout={() => handleCheckout(p.id)}
-                  isLoading={createOrderMutation.isPending && isSelected}
-                />
-              );
-            })
           )}
-        </div>
 
-        {/* Operational Guarantee Footer */}
-        <div className="text-center pt-2 text-[11px] text-muted-foreground">
-          🔒 Secure 256-bit encryption • GST invoice provided • 72-hour grace period ensures test delivery is never halted
+          {/* Success Banner */}
+          {successBanner && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{successBanner}</span>
+            </div>
+          )}
+
+          {/* Billing Cycle Toggle */}
+          <BillingToggle cycle={cycle} onChange={setCycle} />
+
+          {/* Plan Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {plansLoading ? (
+              <div className="col-span-3 py-12 text-center text-sm text-muted-foreground">
+                Loading pricing plans...
+              </div>
+            ) : (
+              plans.map((p) => {
+                const isCurrentActive =
+                  subscription?.status === 'ACTIVE' &&
+                  subscription?.planId === p.id &&
+                  subscription?.billingCycle === cycle;
+
+                const isScheduled =
+                  subscription?.scheduledPlanId === p.id &&
+                  Boolean(subscription?.scheduledPlanName);
+
+                const targetPlanRank = PLAN_RANK[p.slug] || 1;
+                const targetCycleRank = CYCLE_RANK[cycle] || 1;
+
+                let actionType: 'CURRENT' | 'UPGRADE' | 'DOWNGRADE' | 'SCHEDULED' = 'UPGRADE';
+
+                if (isCurrentActive) {
+                  actionType = 'CURRENT';
+                } else if (isScheduled) {
+                  actionType = 'SCHEDULED';
+                } else if (subscription?.status === 'ACTIVE') {
+                  const isTierDowngrade = targetPlanRank < currentPlanRank;
+                  const isCycleDowngrade =
+                    targetPlanRank === currentPlanRank && targetCycleRank < currentCycleRank;
+
+                  if (isTierDowngrade || isCycleDowngrade) {
+                    actionType = 'DOWNGRADE';
+                  } else {
+                    actionType = 'UPGRADE';
+                  }
+                }
+
+                const isSelected = activePlanId === p.id;
+
+                return (
+                  <PlanCard
+                    key={p.id}
+                    plan={p}
+                    cycle={cycle}
+                    isCurrent={Boolean(isCurrentActive)}
+                    isSelected={isSelected}
+                    actionType={actionType}
+                    onSelect={() => setUserSelectedPlanId(p.id)}
+                    onCheckout={() => handlePlanAction(p, actionType)}
+                    isLoading={false}
+                  />
+                );
+              })
+            )}
+          </div>
+
+          {/* Operational Guarantee Footer */}
+          <div className="text-center pt-2 text-[11px] text-muted-foreground">
+            🔒 256-bit SSL encryption • 18% GST tax invoice provided (HSN 998313) • 72-hour grace period ensures patient testing is never halted
+          </div>
         </div>
-      </div>
-    </Modal>
+      </Modal>
+
+      {/* Review & Checkout Dialog (Step 2) */}
+      {reviewPlan && (
+        <CheckoutReviewDialog
+          isOpen={Boolean(reviewPlan)}
+          onClose={() => setReviewPlan(null)}
+          plan={reviewPlan}
+          cycle={cycle}
+          subscription={subscription || null}
+          onSuccess={() => {
+            setReviewPlan(null);
+            onClose();
+          }}
+        />
+      )}
+
+      {/* Scheduled Downgrade Confirmation Dialog */}
+      {downgradePlan && (
+        <ScheduleDowngradeDialog
+          isOpen={Boolean(downgradePlan)}
+          onClose={() => setDowngradePlan(null)}
+          targetPlan={downgradePlan}
+          cycle={cycle}
+          subscription={subscription || null}
+          onSuccess={() => {
+            setDowngradePlan(null);
+            onClose();
+          }}
+        />
+      )}
+    </>
   );
 }

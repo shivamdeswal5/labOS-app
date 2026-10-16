@@ -2,11 +2,12 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { subscriptionService } from './subscription.service';
-import { PlatformPlan, TenantSubscription, CreateOrderPayload, GatewayOrderResponse } from '../types';
+import { PlatformPlan, TenantSubscription, CreateOrderPayload, GatewayOrderResponse, PlanSlug } from '../types';
 
 export const SUBSCRIPTION_QUERY_KEYS = {
   plans: ['platform-plans'] as const,
   subscription: ['tenant-subscription'] as const,
+  invoices: ['tenant-invoices'] as const,
 };
 
 export const DEFAULT_DEMO_PLANS: PlatformPlan[] = [
@@ -135,6 +136,22 @@ export function useTenantSubscriptionQuery() {
 }
 
 /**
+ * Hook to preview subscription transition (proration credit, GST, and downgrade scheduling)
+ */
+export function usePreviewTransitionQuery(
+  planSlug: PlanSlug | null,
+  billingCycle: string,
+  enabled: boolean = true,
+) {
+  return useQuery({
+    queryKey: ['subscription-transition-preview', planSlug, billingCycle],
+    queryFn: () => subscriptionService.previewTransition(planSlug!, billingCycle),
+    enabled: Boolean(enabled && planSlug),
+    staleTime: 60 * 1000,
+  });
+}
+
+/**
  * Mutation to generate a gateway checkout order
  */
 export function useCreateSubscriptionOrderMutation() {
@@ -147,3 +164,15 @@ export function useCreateSubscriptionOrderMutation() {
     },
   });
 }
+
+/**
+ * Hook to retrieve all historical subscription tax invoices
+ */
+export function useTenantInvoicesQuery() {
+  return useQuery({
+    queryKey: SUBSCRIPTION_QUERY_KEYS.invoices,
+    queryFn: () => subscriptionService.getTenantInvoices(),
+    staleTime: 30 * 1000,
+  });
+}
+

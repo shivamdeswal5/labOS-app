@@ -14,7 +14,11 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
  * Usage: Import in all 'use client' components and the Axios interceptor.
  */
 export function createSupabaseBrowserClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      name: 'sb-labos-auth-token',
+    },
+  });
 }
 
 // Singleton for client-side usage (Axios interceptor, hooks).

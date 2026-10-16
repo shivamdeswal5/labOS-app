@@ -145,6 +145,8 @@ export function useAuthContext(): AuthContextValue {
   return ctx;
 }
 
+export const useAuth = useAuthContext;
+
 // ---------------------------------------------------------------------------
 // Cookie helpers (exported for onboarding completion and logout flows)
 // ---------------------------------------------------------------------------
