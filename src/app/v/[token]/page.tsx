@@ -14,6 +14,7 @@ import { A4DocumentSheet } from '@/features/reports/components/report-preview/a4
 import { useSharedReport } from '@/features/reports/api/use-shared-report';
 import { downloadReportPdf } from '@/features/reports/api/use-report-pdf';
 import { useLabProfile } from '@/features/settings/hooks/use-lab-profile';
+import { PatientSmartSummaryView } from '@/features/reports/components/smart-summary/patient-smart-summary-view';
 
 interface PublicPortalProps {
   params: Promise<{ token: string }>;
@@ -44,6 +45,8 @@ export default function PublicPatientPortalPage({ params }: PublicPortalProps) {
   const handlePrint = () => {
     window.print();
   };
+
+  const [activeTab, setActiveTab] = useState<'OFFICIAL' | 'SMART'>('OFFICIAL');
 
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans">
@@ -124,18 +127,48 @@ export default function PublicPatientPortalPage({ params }: PublicPortalProps) {
         {/* Authenticated Report Display */}
         {report && (
           <div className="w-full flex flex-col items-center gap-4">
-            {/* Authenticated Verification Pill */}
-            <div className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-900 rounded-full border border-zinc-200 dark:border-zinc-800 shadow-sm text-xs text-zinc-600 dark:text-zinc-400 font-mono print:hidden">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Authenticated Digital Report #{report.reportNumber}</span>
-              <span>•</span>
-              <span>{report.patient?.name}</span>
+            {/* View Mode Switcher Pills (Print-Hidden) */}
+            <div className="flex flex-wrap items-center justify-center gap-2 print:hidden">
+              <div className="bg-white dark:bg-zinc-900 p-1 rounded-full border border-zinc-200 dark:border-zinc-800 shadow-xs flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('OFFICIAL')}
+                  className={`px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 ${
+                    activeTab === 'OFFICIAL'
+                      ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Official Report (A4)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('SMART')}
+                  className={`px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 ${
+                    activeTab === 'SMART'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100'
+                  }`}
+                >
+                  <span className="text-amber-400">✨</span>
+                  <span>Smart Summary / सरल रिपोर्ट</span>
+                </button>
+              </div>
             </div>
 
-            {/* Simulated Paper A4 Document */}
-            <div className="w-full flex justify-center overflow-x-auto py-2">
+            {/* Simulated Paper A4 Document (Visible when activeTab is OFFICIAL or when printing) */}
+            <div className={`w-full flex justify-center overflow-x-auto py-2 ${activeTab === 'OFFICIAL' ? 'block' : 'hidden print:block'}`}>
               <A4DocumentSheet report={report} />
             </div>
+
+            {/* Smart Patient Summary View (Visible when activeTab is SMART) */}
+            {activeTab === 'SMART' && (
+              <div className="w-full flex justify-center print:hidden">
+                <PatientSmartSummaryView token={token} report={report} />
+              </div>
+            )}
           </div>
         )}
       </main>

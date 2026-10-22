@@ -14,6 +14,7 @@ export interface ModalProps {
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   className?: string;
+  contentClassName?: string;
   showCloseButton?: boolean;
 }
 
@@ -34,6 +35,7 @@ export function Modal({
   children,
   size = 'md',
   className = '',
+  contentClassName,
   showCloseButton = true,
 }: ModalProps) {
   const isMounted = useSyncExternalStore(
@@ -109,7 +111,7 @@ export function Modal({
             )}
           </div>
         )}
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        <div className={`flex-1 overflow-y-auto ${contentClassName ?? 'p-5'}`}>{children}</div>
       </div>
     </div>,
     document.body,

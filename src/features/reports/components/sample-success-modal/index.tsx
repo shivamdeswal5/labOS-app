@@ -13,6 +13,7 @@ import {
   Copy,
   Receipt,
   Printer,
+  X,
 } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -126,11 +127,21 @@ export function SampleSuccessModal({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        size="lg"
-        className="p-0 border-border/80 overflow-hidden"
+        size="2xl"
+        showCloseButton={false}
+        contentClassName="p-0"
+        className="border-border/80 overflow-hidden"
       >
-        {/* Header Banner with Clinical Verified Badge */}
+        {/* Header Banner with Clinical Verified Badge & Integrated Close Button */}
         <div className="p-6 bg-emerald-500/10 border-b border-emerald-500/20 text-center relative overflow-hidden">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            aria-label="Close dialog"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-3 ring-8 ring-emerald-500/5">
             <CheckCircle2 className="w-6 h-6" />
           </div>
@@ -143,29 +154,29 @@ export function SampleSuccessModal({
         </div>
 
         {/* Content Details */}
-        <div className="p-6 space-y-4">
+        <div className="p-5 sm:p-6 space-y-3.5">
           {/* Accession Barcode Strip */}
-          <div className="p-3.5 rounded-xl bg-muted/50 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-background border border-border text-foreground">
+          <div className="p-4 rounded-xl bg-muted/40 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-xl bg-background border border-border text-foreground shrink-0 shadow-2xs">
                 <Barcode className="w-6 h-6 text-primary" />
               </div>
-              <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              <div className="min-w-0">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                   Accession Barcode UID
                 </div>
-                <div className="text-base font-mono font-extrabold text-foreground tracking-wider">
+                <div className="text-base sm:text-lg font-mono font-black text-foreground tracking-wider whitespace-nowrap">
                   {reportNumber}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
               <Button
                 type="button"
                 size="sm"
                 onClick={() => setIsStickerModalOpen(true)}
-                className="h-8 text-xs font-semibold gap-1.5 bg-teal-600 hover:bg-teal-700 text-white shadow-xs cursor-pointer"
+                className="flex-1 sm:flex-initial h-8.5 text-xs font-semibold gap-1.5 bg-teal-600 hover:bg-teal-700 text-white shadow-xs cursor-pointer whitespace-nowrap"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print 50×25mm Sticker</span>
@@ -176,12 +187,12 @@ export function SampleSuccessModal({
                 variant="outline"
                 size="sm"
                 onClick={handleCopyBarcode}
-                className="h-8 text-xs gap-1.5 cursor-pointer"
+                className="h-8.5 text-xs font-medium gap-1.5 cursor-pointer whitespace-nowrap bg-background"
               >
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied</span>
                   </>
                 ) : (
                   <>
@@ -194,22 +205,22 @@ export function SampleSuccessModal({
           </div>
 
           {/* Linked Tax Invoice & Payment Receipt Strip */}
-          <div className="p-3.5 rounded-xl bg-card border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          <div className="p-4 rounded-xl bg-card border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-xs">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
                 <Receipt className="w-5 h-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-foreground">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs font-bold text-foreground whitespace-nowrap">
                     {displayInvoice.invoiceNumber}
                   </span>
                   {displayInvoice.paymentStatus === 'PAID' ? (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
                       PAID • {displayInvoice.paymentMethod || 'UPI'}
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 whitespace-nowrap">
                       UNPAID / PAY LATER
                     </span>
                   )}
@@ -225,7 +236,7 @@ export function SampleSuccessModal({
               type="button"
               size="sm"
               onClick={() => setIsReceiptModalOpen(true)}
-              className="h-8 text-xs font-semibold gap-1.5 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 shadow-xs self-start sm:self-auto"
+              className="h-8.5 text-xs font-semibold gap-1.5 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 shadow-xs shrink-0 self-stretch sm:self-auto cursor-pointer whitespace-nowrap"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print Tax Receipt</span>
@@ -234,38 +245,38 @@ export function SampleSuccessModal({
 
         {/* Patient & Test Information Card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="p-3.5 rounded-lg bg-card border border-border space-y-1.5">
+          <div className="p-4 rounded-xl bg-card border border-border space-y-1.5 shadow-2xs">
             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               Patient Information
             </div>
-            <div className="font-bold text-sm text-foreground">{patientName}</div>
-            <div className="text-muted-foreground flex items-center gap-2 text-[11px] font-mono">
-              <span>{patientAge && patientSex ? `${patientAge} / ${patientSex}` : 'Walk-in'}</span>
+            <div className="font-bold text-sm text-foreground truncate">{patientName}</div>
+            <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
+              <span className="font-medium text-foreground/85 whitespace-nowrap">{patientAge && patientSex ? `${patientAge} / ${patientSex}` : 'Walk-in'}</span>
               {patientNumber && (
                 <>
-                  <span>•</span>
-                  <span>{patientNumber}</span>
+                  <span className="text-muted-foreground/40">•</span>
+                  <span className="whitespace-nowrap">{patientNumber}</span>
                 </>
               )}
             </div>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-card border border-border space-y-1.5">
+          <div className="p-4 rounded-xl bg-card border border-border space-y-1.5 shadow-2xs">
             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
               <span>Investigations ({selectedPanelNames.length})</span>
               <span className="font-mono font-bold text-foreground">{formatCurrency(totalPrice)}</span>
             </div>
-            <div className="flex flex-wrap gap-1 pt-0.5">
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
               {selectedPanelNames.slice(0, 3).map((name) => (
                 <span
                   key={name}
-                  className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium"
+                  className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-medium"
                 >
                   {name}
                 </span>
               ))}
               {selectedPanelNames.length > 3 && (
-                <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">
+                <span className="px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-mono">
                   +{selectedPanelNames.length - 3} more
                 </span>
               )}
@@ -274,12 +285,12 @@ export function SampleSuccessModal({
         </div>
 
         {/* Actions Suite */}
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2.5 pt-1.5">
           {/* Primary Action: Enter Results Now */}
           <Button
             asChild
             size="lg"
-            className="w-full h-11 text-xs sm:text-sm font-semibold gap-2 shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="w-full h-11 text-xs sm:text-sm font-semibold gap-2 shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
           >
             <Link href={`/reports/${reportId}/entry`}>
               <FileEdit className="w-4 h-4" />
@@ -289,12 +300,12 @@ export function SampleSuccessModal({
           </Button>
 
           {/* Secondary Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <Button
               type="button"
               variant="outline"
               onClick={onRegisterNext}
-              className="h-10 text-xs font-semibold gap-2"
+              className="h-10 text-xs font-semibold gap-2 cursor-pointer bg-card hover:bg-muted"
             >
               <UserPlus className="w-4 h-4 text-muted-foreground" />
               <span>Register Next Patient</span>
@@ -303,7 +314,7 @@ export function SampleSuccessModal({
             <Button
               asChild
               variant="ghost"
-              className="h-10 text-xs font-semibold gap-2 border border-border hover:bg-muted"
+              className="h-10 text-xs font-semibold gap-2 border border-border hover:bg-muted cursor-pointer"
             >
               <Link href="/accessions">
                 <ClipboardList className="w-4 h-4 text-muted-foreground" />

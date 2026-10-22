@@ -498,11 +498,10 @@ export function A4DocumentSheet({
             />
           </div>
 
-          <div className="flex flex-col text-[11px]">
-            <span className="font-mono font-bold text-zinc-900 text-xs">Scan to Verify Original Report</span>
-            <span className="text-zinc-500 text-[10px]">Digital Report Authentication</span>
-            <span className="font-mono font-medium text-primary text-[10px]">/v/{shareToken.slice(0, 10)}...</span>
-            <span className="font-mono text-[9px] text-zinc-400 mt-0.5">Ref: {report.reportNumber}</span>
+          <div className="flex flex-col justify-center">
+            <span className="font-bold text-zinc-900 text-[11px] leading-tight">Scan to Verify Report</span>
+            <span className="text-zinc-500 text-[10px] leading-tight mt-0.5">Official Digital Authenticity Record</span>
+            <span className="font-mono text-[9px] text-zinc-400 mt-1">Ref: {report.reportNumber}</span>
           </div>
         </div>
 

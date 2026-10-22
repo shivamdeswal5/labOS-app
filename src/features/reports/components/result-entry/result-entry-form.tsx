@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   Save,
   CheckCheck,
   FileCheck2,
   Keyboard,
   Lock,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { evaluateNormalRange } from '../../utils/range-checker';
 import { useRBAC } from '@/features/auth/hooks/use-rbac';
+import { useGenerateAiImpression } from '../../api/use-ai-assistant';
 import type { DetailedReport } from '../../types';
 
 interface ResultEntryFormProps {
@@ -62,6 +65,39 @@ export function ResultEntryForm({
 
   const { can } = useRBAC();
   const canFinalize = can('REPORTS:FINALIZE');
+
+  const aiImpressionMutation = useGenerateAiImpression(report.id);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const handleAiSuggestRemarks = async () => {
+    try {
+      setAiError(null);
+      const draftValues: Array<{ parameterId: string; value: string; isOutOfRange?: boolean }> = [];
+      for (const rp of report.reportPanels || []) {
+        for (const sec of rp.panel?.sections || []) {
+          for (const param of sec.parameters || []) {
+            const val = values[param.id];
+            if (val && val.trim().length > 0) {
+              const evalResult = evaluateNormalRange(param.normalRange, val, patientSex);
+              draftValues.push({
+                parameterId: param.id,
+                value: val.trim(),
+                isOutOfRange: evalResult.isOutOfRange,
+              });
+            }
+          }
+        }
+      }
+
+      const response = await aiImpressionMutation.mutateAsync({ draftValues });
+      if (response?.impression) {
+        onRemarksChange(response.impression);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate impression';
+      setAiError(msg);
+    }
+  };
 
   // Global document-level keyboard shortcuts with capture: true
   // Prevents browser native shortcuts like "Save Page As..." (Ctrl+S) from downloading HTML
@@ -269,10 +305,29 @@ export function ResultEntryForm({
         ))}
 
         {/* Doctor / Lab Clinical Remarks */}
-        <div className="p-3 bg-muted/40 rounded-lg border border-border space-y-1.5">
-          <label htmlFor="clinicalRemarks" className="text-xs font-semibold uppercase tracking-wide text-foreground">
-            Doctor / Pathologist Remarks
-          </label>
+        <div className="p-3 bg-muted/40 rounded-lg border border-border space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <label htmlFor="clinicalRemarks" className="text-xs font-semibold uppercase tracking-wide text-foreground">
+              Doctor / Pathologist Remarks
+            </label>
+            {!isFinalized && (
+              <button
+                type="button"
+                onClick={handleAiSuggestRemarks}
+                disabled={aiImpressionMutation.isPending || enteredCount === 0}
+                title={enteredCount === 0 ? 'Enter test values first to generate clinical impression' : 'Generate ISO 15189 compliant clinical impression with AI'}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 border border-purple-200 dark:border-purple-800 rounded-md transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {aiImpressionMutation.isPending ? (
+                  <Loader2 className="w-3.5 h-3.5 text-purple-600 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                )}
+                <span>{aiImpressionMutation.isPending ? 'Analyzing Indices...' : '✨ AI Suggest Impression'}</span>
+              </button>
+            )}
+          </div>
+
           <textarea
             id="clinicalRemarks"
             value={remarks}
@@ -282,6 +337,12 @@ export function ResultEntryForm({
             placeholder="Enter clinical interpretation, microscopy notes, or correlation remarks..."
             className="w-full text-xs p-2 rounded-md border border-input bg-background text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none disabled:opacity-60"
           />
+
+          {aiError && (
+            <div className="text-[11px] text-amber-600 dark:text-amber-400">
+              Note: {aiError}. Standard clinical remarks will apply.
+            </div>
+          )}
         </div>
       </div>
 
